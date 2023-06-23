@@ -218,29 +218,16 @@ superArray arrayAppendS(array A, superArray Alpha)
 //add an entry at an index with value of the array length//
 array arrayAppend(long appendVal, array A)
 {
-	array QE = arrayF(A.Type, A.Length);
-	
-	int typeBytes = typeVal(A.Type);
-	
-	int quantumLength = QE.Length;
+	array B = arrayF(A.Type,A.Length + 1);
 	
 	for (int i = 0; i < A.Length; i++)
-	{		
-		QE.loc[i] = A.loc[i];
-	}
-	
-	free(A.loc);
-	A.loc = calloc(QE.Length + 1, typeBytes);
-	A.Length = QE.Length + 1;
-	
-	for (int i = 0; i < QE.Length; i++)
 	{
-		A.loc[i] = QE.loc[i];
+		B.loc[i] = A.loc[i];
 	}
 	
-	A.loc[quantumLength] = appendVal;
+	B.loc[A.Length] = appendVal;
 	
-	return A;
+	return B;
 }
 
 
