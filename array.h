@@ -203,32 +203,16 @@ superArray arrayS(int T, long aL, long sL)
 // add an array to the super array
 superArray arrayAppendS(array A, superArray Alpha)
 {
-	superArray sQE = Alpha;
+	superArray Bravo = {calloc(Alpha.Length + 1, sizeof(A)),A.Type,Alpha.Length + 1};
 	
-	int allocationVal = 0;
-	
-	for (int i = 0; i < sQE.Length; i++)
+	for (int i = 0; i < Alpha.Length; i++)
 	{
-		allocationVal += typeVal(sQE.AlphaLoc[i].Type) * sQE.AlphaLoc[i].Length;
+		Bravo.AlphaLoc[i] = Alpha.AlphaLoc[i];
 	}
 	
-	free(Alpha.AlphaLoc);
+	Bravo.AlphaLoc[Alpha.Length] = A;
 	
-	Alpha.AlphaLoc = malloc(allocationVal);
-	
-	for (int i = 0; i <= sQE.Length; i++)
-	{
-		if (i == sQE.Length)
-		{
-			Alpha.AlphaLoc[i] = A;
-			
-			break;
-		}
-		
-		Alpha.AlphaLoc[i] = sQE.AlphaLoc[i];
-	}
-	
-	return Alpha;
+	return Bravo;
 }
 
 //add an entry at an index with value of the array length//
