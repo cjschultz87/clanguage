@@ -1,0 +1,296 @@
+#include <array.h>
+#include <strings.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+
+int max(int argN, ...)
+{
+	int k0, k1, L;
+	
+	va_list VL;
+	
+	va_start(VL,argN);
+	
+	k0 = argN;
+	
+	k1 = va_arg(VL, int);
+	
+	vStart:{};
+	
+	if (k0 > k1)
+	{
+		L = k0;
+	}
+	else
+	{
+		L = k1;
+	}
+	
+	k0 = L;
+	
+	k1 = va_arg(VL, int);
+	
+	if (k1 == NULL)
+	{
+		goto vEnd;
+	}
+	else
+	{
+		goto vStart;
+	}
+	
+	vEnd:{};
+	
+	va_end(VL);
+	
+	return L;
+}
+
+int min(int argN, ...)
+{
+	int k0, k1, L;
+	
+	va_list VL;
+	
+	va_start(VL, argN);
+	
+	k0 = argN;
+	
+	k1 = va_arg(VL, int);
+	
+	vStart:{};
+	
+	if (k0 < k1)
+	{
+		L = k0;
+	}
+	else
+	{
+		L = k1;
+	}
+	
+	k0 = L;
+	
+	k1 = va_arg(VL, int);
+	
+	if (k1 == NULL)
+	{
+		goto vEnd;
+	}
+	else
+	{
+		goto vStart;
+	}
+	
+	vEnd:{};
+	
+	va_end(VL);
+	
+	return L;
+}
+
+char comF(char c0)
+{
+	return 122 - 65 - c0;
+}
+
+char xorQ(char c0, char c1)
+{
+	if (c0 >= 65 & c0 <= 122)
+	{
+		if (c1 >= 65 & c1 <= 122)
+		{
+			c1 -= 65;
+		}
+		
+		c0 -= 65;
+	}
+	else
+	{
+		return '0';
+	}
+	
+	return min(max(c0,c1),comF(max(c0,c1))) + 65;
+}
+
+char dCount(char c0, char c1)
+{
+	if (c0 == c1)
+	{
+		return '0';
+	}
+	else
+	{
+		return '1';
+	}
+}
+
+void main(int argc, char *argv[])
+{
+	int Q = 0;
+	int hexOut = 0;
+	
+	if (argc > 1)
+	{
+		if (argc == 4)
+		{
+			str argv4 = argv[3];
+			
+			if (argv4[0] == 'q' | argv4[0] == 'Q')
+			{
+				Q = 1;
+			}
+			
+			if (argv4 = "hex")
+			{
+				hexOut = 1;
+			}
+		}
+		
+		str dividend = argv[1];
+	
+		str divisor = argv[2];
+	
+		stringArray dividendArray = strA(dividend);
+	
+		stringArray divisorArray = strA(divisor);
+	
+		array quotientArray = arrayF(Tshort, dividendArray.Length - divisorArray.Length);
+		
+		for (int i = 0; i < quotientArray.Length; i++)
+		{
+			quotientArray.loc[i] = '0';
+		}
+		
+		array dividendPrime = arrayF(Tshort, divisorArray.Length);
+		
+		for (int i = 0; i < dividendPrime.Length; i++)
+		{
+			dividendPrime.loc[i] = '0';
+		}
+		
+		for (int i = 0; i < 1 + dividendArray.Length - divisorArray.Length; i++)
+		{
+			if (i == 0)
+			{
+				for (int i1 = 0; i1 < divisorArray.Length; i1++)
+				{
+					dividendPrime.loc[i1] = dividendArray.loc[i1];
+				}
+			}
+			
+			
+			for (int i1 = 0; i1 < dividendPrime.Length; i1++)
+			{
+				if (Q == 0)
+				{
+					dividendPrime.loc[i1] = dCount(dividendPrime.loc[i1], divisorArray.loc[i1]);
+				}
+				else
+				{
+					dividendPrime.loc[i1] = xorQ(dividendPrime.loc[i1], divisorArray.loc[i1]);
+				}
+			}
+			
+			quotientArray.loc[i] = dividendPrime.loc[0];
+			
+			if (i < dividendArray.Length - divisorArray.Length)
+			{
+				//left shift
+				for (int i1 = 1; i1 < divisorArray.Length; i1++)
+				{
+					dividendPrime.loc[i1 - 1] = dividendPrime.loc[i1];
+				}
+				
+				//carry the value
+				dividendPrime.loc[divisorArray.Length - 1] = dividendArray.loc[i + divisorArray.Length];
+			}
+		}
+		
+		
+		if (hexOut == 0)
+		{
+			for (int i = 0; i < quotientArray.Length; i++)
+			{
+				printf("%c", quotientArray.loc[i]);
+			}
+		
+			printf("\n");
+		
+			for (int i = 0; i < dividendPrime.Length; i++)
+			{
+				printf("%c", dividendPrime.loc[i]);
+			}
+		}
+		else
+		{
+			
+			array decimalArray = arrayF(Tchar, quotientArray.Length + dividendPrime.Length);
+			
+			for (int i = 0; i < decimalArray.Length; i++)
+			{
+				if (i < quotientArray.Length)
+				{
+					decimalArray.loc[i] = quotientArray.loc[i];
+				}
+				else
+				{
+					decimalArray.loc[i] = dividendPrime.loc[i - quotientArray.Length];
+				}
+			}
+			
+			char digits[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+			
+			for (int i = 0; i < decimalArray.Length; i += 7)
+			{
+				int decimalVal = 0;
+				
+				int modVal = 0;
+				
+				for (int i1 = 7; i1 >= 0; i1--)
+				{
+					int powerVal = 1;
+				
+					for (int i2 = 0; i2 < i; i2++)
+					{
+						powerVal *= 10;
+					}
+				
+					if (i < quotientArray.Length)
+					{
+						decimalVal += powerVal * decimalArray.loc[i];
+					}
+				}
+				
+				printf("###########%d\n\n", decimalVal);
+				
+				array modArray = arrayF(Tchar, 2);
+				
+				for (int i1 = modArray.Length - 1; i1 >= 0; i1--)
+				{
+					modVal = decimalVal % 16;
+					
+					decimalVal /= 16;
+					
+					for (int i2 = 0; i2 < 16; i2++)
+					{
+						if (modVal == i2)
+						{
+							modArray.loc[i1] = digits[i2];
+						}
+					}
+				}
+				
+				for (int i1 = 0; i1 < modArray.Length; i1++)
+				{
+					printf("%c", modArray.loc[i1]);
+				}
+				
+				printf("\n");
+			}
+		}
+		
+		printf("\n");
+	}
+}
