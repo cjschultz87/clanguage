@@ -1,0 +1,86 @@
+#include <array.h>
+#include <strings.h>
+#include <stdio.h>
+
+void main(int argc, char *argv[])
+{	
+	array digitsArray;
+
+	array strArray;
+	
+	str strVal;
+	
+	int baseVal;
+	
+	int cPrime;
+	
+	if (argc > 1)
+	{
+		strVal = argv[1];
+	
+		if (argc > 2)
+		{
+			baseVal = strToL(argv[2], 10);
+		}
+		
+		strArray = arrayF(Tchar, strLength(strVal));
+	
+		for (int i = 0; i < strLength(strVal); i++)
+		{
+			if (strVal[i] >= 97 && strVal[i] <= 122)
+			{
+				strArray.loc[i] = strVal[i] - 97;
+			}
+			if (strVal[i] >= 65 && strVal[i] <= 90)
+			{
+				strArray.loc[i] = strVal[i] - 65;
+			}
+			if (strVal[i] >= 48 && strVal[i] <= 57)
+			{
+				strArray.loc[i] = strVal[i] - 23;
+			}
+		}
+		
+	}
+	
+	if (baseVal > 0 && strArray.Length > 0)
+	{
+		for (int i = 0; i < strArray.Length; i++)
+		{
+			
+			cPrime = strArray.loc[i];
+			
+			int cPower = 1;
+			
+			for (int i1 = 0; cPrime > 0; i1++)
+			{
+				cPower++;
+				
+				cPrime /= baseVal;
+			}
+			
+			cPrime = strArray.loc[i];
+			
+			digitsArray = arrayF(Tshort, 8);
+			
+			for (int i1 = 0; i1 < cPower; i1++)
+			{
+				digitsArray.loc[i1] = cPrime % baseVal;
+				
+				cPrime /= baseVal;
+			}
+			
+			for (int i1 = digitsArray.Length - 1; i1 >= 0; i1--)
+			{
+				printf("%d", digitsArray.loc[i1]);
+			}
+
+			if ((i+5)%4 == 0)
+			{
+				printf("\n");
+			}
+		}
+	}
+	
+	printf("\n");
+}
