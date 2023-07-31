@@ -129,7 +129,6 @@ char dCount(char c0, char c1)
 void main(int argc, char *argv[])
 {
 	int Q = 0;
-	int hexOut = 0;
 	
 	if (argc > 1)
 	{
@@ -142,10 +141,6 @@ void main(int argc, char *argv[])
 				Q = 1;
 			}
 			
-			if (argv4 = "hex")
-			{
-				hexOut = 1;
-			}
 		}
 		
 		str dividend = argv[1];
@@ -209,8 +204,6 @@ void main(int argc, char *argv[])
 		}
 		
 		
-		if (hexOut == 0)
-		{
 			for (int i = 0; i < quotientArray.Length; i++)
 			{
 				printf("%c", quotientArray.loc[i]);
@@ -222,74 +215,7 @@ void main(int argc, char *argv[])
 			{
 				printf("%c", dividendPrime.loc[i]);
 			}
-		}
-		else
-		{
-			
-			array decimalArray = arrayF(Tchar, quotientArray.Length + dividendPrime.Length);
-			
-			for (int i = 0; i < decimalArray.Length; i++)
-			{
-				if (i < quotientArray.Length)
-				{
-					decimalArray.loc[i] = quotientArray.loc[i];
-				}
-				else
-				{
-					decimalArray.loc[i] = dividendPrime.loc[i - quotientArray.Length];
-				}
-			}
-			
-			char digits[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-			
-			for (int i = 0; i < decimalArray.Length; i += 7)
-			{
-				int decimalVal = 0;
-				
-				int modVal = 0;
-				
-				for (int i1 = 7; i1 >= 0; i1--)
-				{
-					int powerVal = 1;
-				
-					for (int i2 = 0; i2 < i; i2++)
-					{
-						powerVal *= 10;
-					}
-				
-					if (i < quotientArray.Length)
-					{
-						decimalVal += powerVal * decimalArray.loc[i];
-					}
-				}
-				
-				printf("###########%d\n\n", decimalVal);
-				
-				array modArray = arrayF(Tchar, 2);
-				
-				for (int i1 = modArray.Length - 1; i1 >= 0; i1--)
-				{
-					modVal = decimalVal % 16;
-					
-					decimalVal /= 16;
-					
-					for (int i2 = 0; i2 < 16; i2++)
-					{
-						if (modVal == i2)
-						{
-							modArray.loc[i1] = digits[i2];
-						}
-					}
-				}
-				
-				for (int i1 = 0; i1 < modArray.Length; i1++)
-				{
-					printf("%c", modArray.loc[i1]);
-				}
-				
-				printf("\n");
-			}
-		}
+		
 		
 		printf("\n");
 	}
