@@ -111,7 +111,11 @@ char xorQ(char c0, char c1)
 		return '0';
 	}
 	
-	return min(max(c0,c1),comF(max(c0,c1))) + 65;
+	int r = min(max(c0,c1),comF(min(c0,c1)));
+	
+	printf("%c\n",r+65);
+	
+	return r + 65;
 }
 
 char dCount(char c0, char c1)
