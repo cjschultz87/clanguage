@@ -5,315 +5,426 @@
 #include <strings.h>
 #include <time.h>
 
-str Dir_in = NULL;
+str path_in = NULL;
+str path_out = NULL;
 
-str Dir_out = NULL;
-
-str file = NULL;
-
-int fEncryption = 0;
+short fEncryption = 0;
 
 str fKey = NULL;
 
-array fK;
-
-array fKilo;
-
-superArray SIERRA;
-
-int seed(clock_t c)
-{
-	int rVal = c % 258;
+int dice()
+{	
+	int rVal = 0;
+	
+	for (int i = 0; i < 8; i++)
+	{
+		short exp = 7-i;
+		
+		int power = 1;
+		
+		for (int i_1 = 0; i_1 < exp; i_1++)
+		{
+			power *= 2;
+		}
+		
+		rVal += (clock()%2) * power;
+	}
 	
 	return rVal;
 }
 
-void main(int argc, char *argv[])
+array rotate(array alpha, int n, short direction)
 {
-	if (argc > 2)
+	if (direction < 0 & direction > 1)
 	{
-		if (argc > 4)
+		return	alpha;
+	}
+	
+	array bravo = arrayF(Tshort,alpha.Length);
+	
+	if (direction == 1)
+	{
+		for (int i = 0; i < bravo.Length; i++)
 		{
-			if (strCompare(argv[3],"o") == 1 && argc == 5)
-			{
-				Dir_in = argv[1];
-				
-				file = argv[2];
-				
-				Dir_out = argv[4];
-				
-				fKey = argv[5];
-			}
-			else
-			{
-				sPrint("Excessive arguments", "\n");
-			}
+			bravo.loc[i] = alpha.loc[(i+n)%alpha.Length];
+		}
+	}
+	if (direction == 0)
+	{
+		for (int i = 0; i < bravo.Length; i++)
+		{
+			bravo.loc[i] = alpha.loc[((alpha.Length) + (i-n))%alpha.Length];
+		}
+	}
+	
+	return bravo;
+}
+
+void main(int argc, char **argv)
+{
+	
+	if (argc != 3)
+	{
+		sPrint("<path> <key>\n");
+		goto endoffunction;
+	}
+	else
+	{
+		path_in = argv[1];
+		
+		if (strCompare(strSubI(strLength(path_in)-3,3,path_in),".fe") == 1)
+		{
+			fEncryption = 1;
+			
+			path_out = strSubI(0,strLength(path_in)-3,path_in);
 		}
 		else
 		{
-			Dir_in = argv[1];
-			
-			file = argv[2];
-			
-			fKey = argv[3];
+			path_out = strCat(path_in,".fe",NULL);
 		}
-	}
-	else
-	{
-		sPrint("Insufficient arguments", "\n");
 		
-		goto endoffunction;
-	}
-
-	if (Dir_out == NULL)
-	{
-		Dir_out = Dir_in;
-	}
-
-	str fPath0 = strCat(Dir_in,"/",file, NULL);
-	str fPath1 = NULL;
-	
-	if (strCompare(strSubI(strLength(fPath0)-3,3,fPath0),".fe") == 1)
-	{
-		fEncryption = 1;
-		
-		fPath1 = strCat(Dir_out,"/",strSubI(0,strLength(file)-3,file),NULL);
-	}
-	else
-	{
-		fPath1 = strCat(Dir_out,"/",file,".fe",NULL);
+		fKey = argv[2];
 	}
 	
 	if (strLength(fKey) % 8 != 0)
 	{
-		for (int i = 0; i < strLength(fKey) % 8; i++)
+		int fKey_L = strLength(fKey);
+		
+		int fKey_L8 = 8 * (fKey_L/8) + 8;
+		
+		for (int i = 0; i < fKey_L8 - fKey_L; i++)
 		{
-			fKey = strCat("0",fKey,NULL);
+			str fKey_prime = fKey;
+			
+			str fKey_prime_element = strSubI(i%fKey_L,(i+1)%fKey_L,argv[2]);
+			
+			fKey = strCat(fKey_prime_element,fKey,NULL);
 		}
 	}
 	
-	fK = arrayF(Tshort,24);
+	array fK_0 = arrayF(Tshort,strLength(fKey));
 	
-	if (strLength(fKey) < 24)
+	int rotation_november = 0;
+	
+	for (int i = 0; i < fK_0.Length; i++)
 	{
-		for (int i = 0; i < fK.Length; i++)
+		fK_0.loc[i] = fKey[i];
+		
+		rotation_november += fK_0.loc[i];
+	}
+	
+	fK_0 = rotate(fK_0,rotation_november,1);
+	
+	array fK_1 = arrayF(Tshort,64);
+	
+	int fK_center = (fK_1.Length / 2) - (fK_0.Length / 2);
+	
+	for (int i = fK_center; i < fK_center + fK_0.Length; i++)
+	{
+		fK_1.loc[i] = fK_0.loc[i - fK_center];
+	}
+	
+	if (fK_0.Length < 64)
+	{
+		
+		int fK_lima	= fK_0.Length;
+		int fK_L = fK_0.Length;
+		
+		while (fK_lima < 64)
 		{
-			if (i < (24 / 2) - (strLength(fKey) / 2))
+			
+			fK_0 = rotate(fK_0,5,0);
+		
+			int i = fK_center - 4;
+			
+			while (i < fK_center + 2)
 			{
-				fK.loc[i] = fKey[i%8];
+				fK_1.loc[i] = fK_0.loc[i-(fK_center - 4)];
+				
+				i++;
 			}
-			if (i >= (24 / 2) - (strLength(fKey) / 2) && i <= (24 / 2) + strLength(fKey) / 2)
+			
+			fK_1.loc[i] = fK_0.loc[3 + fK_center - (i)];
+			
+			i++;
+			
+			fK_1.loc[i] = fK_0.loc[3];
+			
+			i = fK_center + fK_lima;
+			
+			
+			while (i < fK_center + fK_lima + 2)
 			{
-				fK.loc[i] = fKey[i - ((24 / 2) - (strLength(fKey) / 2))];
+				fK_1.loc[i] = fK_0.loc[fK_0.Length - (1+ i%fK_0.Length)];
+				
+				i++;
 			}
-			if (i > (24 / 2) + strLength(fKey) / 2)
-			{
-				fK.loc[i] = fKey[8 - (i%8)];
-			}
+			
+			fK_1.loc[i] = fK_0.loc[2];
+			
+			i++;
+			
+			fK_1.loc[i] = fK_0.loc[fK_0.Length - (1+ i%fK_0.Length)];
+			
+			fK_lima += 8;
+			
+			fK_center -= 4;
+			
 		}
 	}
 	
-	SIERRA = arrayS(Tshort, 16, 4);
-	
-	for (int i = 0; i < SIERRA.Length; i++)
+	if (fK_0.Length > 64)
 	{
-		SIERRA.AlphaLoc[i] = arrayF(Tshort, 16);
-	}
-	
-	fKilo = arrayF(Tshort, 24/2);
-	
-	for (int i = 0; i < fKilo.Length; i++)
-	{
-		for (int i1 = 0; i1 < 2; i1++)
+		for (int i = 0; i < 64; i++)
 		{
-			fKilo.loc[i] += fK.loc[i + i1];
+			fK_1.loc[i] = fK_0.loc[i];
+		}
+	}
+	///////////////////////////////////
+	sPrint("passkey\n.....expanded\n");
+	
+	
+	array fSIERRA = arrayF(Tshort,8*64);
+	
+	for (int i = 0; i < 64; i++)
+	{
+		for (int i_1 = 0; i_1 < 8; i_1++)
+		{	
+			fSIERRA.loc[i*8+i_1] = fK_1.loc[i] % 2; 
+			
+			fK_1.loc[i] /= 2;
 		}
 	}
 	
-	DIR *dPointer0, *dPointer1;
+	fSIERRA = rotate(fSIERRA,rotation_november,1);
 	
-	FILE *fPointer0, *fPointer1, *fPointer2;
+	fK_0 = arrayF(Tshort,0);
+	fK_1 = arrayF(Tshort,64);
 	
-	if (opendir(Dir_in) != NULL)
+	for (int i = 0; i < 64; i++)
 	{
-		dPointer0 = opendir(Dir_in);
+		array fS_0 = arrayF(Tshort,8);
+		
+		for (int i_1 = 0; i_1 < 8; i_1++)
+		{
+			fS_0.loc[i_1] = fSIERRA.loc[(i*8)+i_1];
+		}
+		
+		fS_0 = rotate(fS_0,i,1);
+		
+		int sierra = 0;
+		
+		for (int i_1 = 0; i_1 < 8; i_1++)
+		{
+			int exp = 1;
+			
+			for (int i_2 = 0; i_2 < i_1; i_2++)
+			{
+				exp *= 2;
+			}
+			
+			sierra += fS_0.loc[i_1] * exp;
+		}
+		
+		fK_1.loc[i] = sierra;
+	}
+	
+	/////////////////////////
+	sPrint(".....rotated\n");
+	
+	
+	
+	
+	
+	FILE *foxtrot_0, *foxtrot_1;
+	
+	
+	if (fopen(path_in,"rb") != NULL)
+	{
+		foxtrot_0 = fopen(path_in,"rb");
 	}
 	else
 	{
-		sPrint("directory does not exist", "\n");
+		sPrint("file does not exist\n");
 		
 		goto endoffunction;
 	}
 	
-	if (opendir(Dir_out) != NULL)
+	foxtrot_1 = fopen(path_out,"wb");
+	
+	fseek(foxtrot_0,0,SEEK_END);
+	
+	unsigned long long fSize0 = ftell(foxtrot_0);
+	
+	fseek(foxtrot_0,0,0);
+	
+	fSIERRA = arrayF(Tshort,fSize0 * 8);
+	
+	for (int i = 0; i < fSize0; i++)
 	{
-		dPointer0 = opendir(Dir_out);
-	}
-	else
-	{
-		sPrint("directory does not exist", "\n");
+		fseek(foxtrot_0,i,0);
 		
-		goto endoffunction;
-	}
-	
-	if (fopen(fPath0, "rb") != NULL)
-	{
-		fPointer0 = fopen(fPath0, "rb");
-	}
-	else
-	{
-		sPrint("file does not exist", "\n");
+		int fox_byte = getc(foxtrot_0);
 		
-		goto endoffunction;
+		array fS_0 = arrayF(Tshort,8);
+		
+		int i_1 = 0;
+		
+		while (fox_byte > 0)
+		{
+			
+			fS_0.loc[i_1] = fox_byte % 2;
+			
+			fox_byte /= 2;
+			i_1++;
+		}
+		
+		for (i_1 = 0; i_1 < 8; i_1++)
+		{
+			fSIERRA.loc[(i*8)+i_1] = fS_0.loc[7-i_1];
+		}
 	}
 	
-	fPointer1 = fopen(fPath1, "wb");
+	//////////////////////
+	sPrint("input ready\n");
 	
-	fseek(fPointer0, 0, SEEK_END);
-	
-	unsigned long long fSize0 = ftell(fPointer0);
 	
 	
 	
 	if (fEncryption == 0)
 	{
-		for (int i = 0; i < SIERRA.Length; i++)
+		for (int i = 0; i < fK_1.Length; i += 8)
 		{
-			for (int i1 = 0; i1 < SIERRA.AlphaLoc[i].Length; i1++)
-			{
-				
-				if (i1 > 0)
+			/////////////////////
+			printf("%d/8\n",i/8);
+			
+			fSIERRA = rotate(fSIERRA,5,1);
+			
+			for (int i_1 = 0; i_1 < fSize0; i_1 += 2)
+			{	
+				int sierra_byte = 0;
+		
+				int i_2;
+		
+				for (i_2 = 0; i_2 < 8; i_2++)
 				{
+					int exp = 1;
 					
-					for (int i2 = 0; i2 < SIERRA.AlphaLoc[i].Length; i2++)
+					for (int i_3 = 0; i_3 < 7 - i_2; i_3++)
 					{
-						startloop0:{};
-						
-						SIERRA.AlphaLoc[i].loc[i1] = seed(clock());
-						
-						for (int i3 = 0; i3 < SIERRA.AlphaLoc[i].Length; i3++)
-						{
-							if (i3 != i1 && SIERRA.AlphaLoc[i].loc[i1] == SIERRA.AlphaLoc[i].loc[i3])
-							{
-								goto startloop0;
-							}
-						}
+						exp *= 2;
 					}
 					
+					sierra_byte += fSIERRA.loc[(i_1*8)+i_2] * exp;
+					
 				}
-				else
-				{
-					SIERRA.AlphaLoc[i].loc[i1] = seed(clock());
-				}
-			}
-		}
-		
-		for (int i = 0; i < SIERRA.Length; i++)
-		{
-			for (int i1 = 0; i1 < SIERRA.AlphaLoc[i].Length; i1++)
-			{
-				for (int i2 = 0; i2 < fKilo.Length; i2++)
-				{
-					SIERRA.AlphaLoc[i].loc[i1] = SIERRA.AlphaLoc[i].loc[i1] ^ fKilo.loc[i2];
-				}
-			}
-		}
-		
-		unsigned long long iota_0 = 0;
-		
-		unsigned long long iota_1 = 0;
-		
-		fseek(fPointer0, 0+iota_0, 0);
-		
-		fseek(fPointer1, 0+iota_1, 0);
-		
-		for (int i = 0; i < SIERRA.Length; i++)
-		{
-			for (int i1 = 0; i1 < SIERRA.AlphaLoc[i].Length; i1++)
-			{
-				putc(SIERRA.AlphaLoc[i].loc[i1], fPointer1);
 				
-				iota_1++;
-			}
-		}
-		
-		int bravo = 0;
-		
-		for (unsigned long long i = 0; i < fSize0; i++)
-		{
-			bravo = getc(fPointer0);
-			
-			for (int i1 = 0; i1 < SIERRA.Length; i1++)
-			{
-				for (int i2 = 0; i2 < SIERRA.AlphaLoc[i1].Length - 5; i2++)
+				sierra_byte = sierra_byte ^ fK_1.loc[i];
+				
+				array fS_0 = arrayF(Tshort,8);
+				
+				i_2 = 0;
+				
+				while (sierra_byte > 0)
+				{	
+					fS_0.loc[i_2] = sierra_byte % 2;
+					
+					sierra_byte /= 2;
+					i_2++;
+				}
+				
+				for (i_2 = 0; i_2 < fS_0.Length; i_2++)
 				{
-					bravo = bravo ^ SIERRA.AlphaLoc[i1].loc[i2];
+					fSIERRA.loc[(i_1*8)+i_2] = fS_0.loc[7-i_2];
 				}
 			}
-			
-			putc(bravo,fPointer1);
-			
-			iota_0++;
-			iota_1++;
 		}
 	}
-	else
+	
+	if (fEncryption == 1)
 	{
-		unsigned long long iota_0 = 0;
+		for (int i = fK_1.Length - 8; i >=0; i -= 8)
+		{	
+			/////////////////////
+			printf("%d/8\n",i/8);
+	
+			for (int i_1 = 0; i_1 < fSize0; i_1 += 2)
+			{	
+				int sierra_byte = 0;
 		
-		unsigned long long iota_1 = 0;
+				int i_2;
 		
-		fseek(fPointer0, 0 + iota_0, 0);
-		
-		for (int i = 0; i < SIERRA.Length; i++)
-		{
-			for (int i1 = 0; i1 < SIERRA.AlphaLoc[i].Length; i1++)
-			{
-				SIERRA.AlphaLoc[i].loc[i1] = getc(fPointer0);
+				for (i_2 = 0; i_2 < 8; i_2++)
+				{
+					int exp = 1;
+					
+					for (int i_3 = 0; i_3 < 7 - i_2; i_3++)
+					{
+						exp *= 2;
+					}
+					
+					sierra_byte += fSIERRA.loc[(i_1*8)+i_2] * exp;
+					
+				}
 				
-				iota_0++;
-			}
-		}
-		
-		for (int i = 0; i < SIERRA.Length; i++)
-		{
-			for (int i1 = 0; i1 < SIERRA.AlphaLoc[i].Length; i1++)
-			{
-				for (int i2 = 0; i2 < fKilo.Length; i2++)
-				{
-					SIERRA.AlphaLoc[i].loc[i1] = SIERRA.AlphaLoc[i].loc[i1] ^ fKilo.loc[i2];
+				sierra_byte = sierra_byte ^ fK_1.loc[i];
+				
+				array fS_0 = arrayF(Tshort,8);
+				
+				i_2 = 0;
+				
+				while (sierra_byte > 0)
+				{	
+					fS_0.loc[i_2] = sierra_byte % 2;
+					
+					sierra_byte /= 2;
+					i_2++;
 				}
-			}
-		}
-		
-		fseek(fPointer0,0+iota_0,0);
-		fseek(fPointer1,0+iota_1,0);
-		
-		int bravo = 0;
-		
-		for (unsigned long long i = 0; i < fSize0 - SIERRA.Length * SIERRA.AlphaLoc[0].Length; i++)
-		{
-			bravo = getc(fPointer0);
-			
-			for (int i1 = SIERRA.Length - 1; i1 >= 0; i1--)
-			{
-				for (int i2 = SIERRA.AlphaLoc[i1].Length - 6; i2 >= 0; i2--)
+				
+				for (i_2 = 0; i_2 < fS_0.Length; i_2++)
 				{
-					bravo = bravo ^ SIERRA.AlphaLoc[i1].loc[i2];
+					fSIERRA.loc[(i_1*8)+i_2] = fS_0.loc[7-i_2];
 				}
 			}
 			
-			putc(bravo,fPointer1);
-			
-			iota_0++;
-			iota_1++;
+			fSIERRA = rotate(fSIERRA,5,0);
 		}
-		
-		
 	}
+	
+	if (fEncryption != 0 & fEncryption != 1)
+	{
+		sPrint("error\n");
+		
+		goto endoffunction;
+	}
+	
+	
+	for (int i = 0; i < fSize0; i++)
+	{
+		int sierra_byte = 0;
+			
+		for (int i_1 = 0; i_1 < 8; i_1++)
+		{
+			int exp = 1;
+				
+			for (int i_2 = 0; i_2 < 7-i_1; i_2++)
+			{
+				exp *= 2;
+			}
+				
+			sierra_byte += fSIERRA.loc[(i*8)+i_1] * exp;
+		}
+		
+		fseek(foxtrot_1,i,0);
+		
+		putc(sierra_byte,foxtrot_1);
+	}
+	
 	
 	endoffunction:{};
 	
-	fclose(fPointer0);
-	fclose(fPointer1);
+	sPrint("encrypted\n");
+	
+	fclose(foxtrot_0);
+	fclose(foxtrot_1);
 }
