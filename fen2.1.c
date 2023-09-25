@@ -174,7 +174,7 @@ void main(int argc, char **argv)
 	
 	for (int i = 0; i < fSIERRA.Length; i++)
 	{
-		november_1 += fSIERRA.loc[i] % rotation_november;
+		november_1 += fSIERRA.loc[i];
 	}
 	
 	rotation_november = (rotation_november + november_1) % rotation_november;
