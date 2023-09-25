@@ -170,10 +170,14 @@ void main(int argc, char **argv)
 		rotation_november += fK_0.loc[i];
 	}
 	
-	for (int i = 0; i < 15; i++)
+	int november_1 = 0;
+	
+	for (int i = 0; i < fSIERRA.Length; i++)
 	{
-		rotation_november += fSIERRA.loc[i] + fSIERRA.Length;
+		november_1 += fSIERRA.loc[i] % rotation_november;
 	}
+	
+	rotation_november = (rotation_november + november_1) % rotation_november;
 	
 	fK_0 = rotate(fK_0,rotation_november,1);
 	
