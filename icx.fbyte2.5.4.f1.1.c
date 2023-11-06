@@ -156,10 +156,9 @@ void readerF(int readerCount)
 					sPrint(strToN(Buffers.AlphaLoc[readerCount].loc[i1], 10), "\n");
 				}
 			}
-			else
-			{
-				fwrite(Buffers.AlphaLoc[readerCount].loc, 1, blockVal, FP1[readerCount]);
-			}
+			
+			fwrite(Buffers.AlphaLoc[readerCount].loc, 1, blockVal, FP1[readerCount]);
+			
 		}
 		else
 		{
