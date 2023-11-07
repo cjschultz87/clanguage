@@ -53,7 +53,7 @@ array rotate(array alpha, int n, short direction)
 	{
 		for (int i = 0; i < bravo.Length; i++)
 		{
-			bravo.loc[i] = alpha.loc[(alpha.Length-1)+(((alpha.Length) + (i-n))%alpha.Length)];
+			bravo.loc[i] = alpha.loc[((alpha.Length) + (i-(n%alpha.Length)))%alpha.Length];
 		}
 	}
 	
