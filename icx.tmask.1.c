@@ -94,8 +94,6 @@ void main(int argc, char** argv)
 			d = 1;
 		}
 		
-		printf("/////%d\n",c);
-		
 		for (int i_1 = 0; i_1 <= c; i_1++)
 		{
 			if (en(A.loc[i_1],LOWER,MAX) < MAX)
