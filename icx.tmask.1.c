@@ -1,3 +1,5 @@
+// this version does not check for collisions of permutations
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "array.h"
