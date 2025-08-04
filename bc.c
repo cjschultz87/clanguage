@@ -286,31 +286,15 @@ int atod(str sierra,int base)
 		
 		for (int i_2 = i; i_2 < i_1; i_2++)
 		{
-			str sierra_d;
+			str d_prime = calloc(1,sizeof(char));
 			
-			int d_len = sLen(digit);
+			d_prime[0] = sierra[i_2];
 			
-			sierra_d = calloc(d_len + 1,sizeof(char));
-			
-			for (int i_3 = 0; i_3 < d_len; i_3++)
-			{
-				sierra_d[i_3] = digit[i_3];
-			}
-			
-			sierra_d[d_len] = sierra[i_2];
-			
-			digit = calloc(d_len + 1,sizeof(char));
-			
-			for (int i_3 = 0; i_3 < d_len + 1;i_3++)
-			{
-				digit[i_3] = sierra_d[i_3];
-			}
-			
-			sierra_d = calloc(0,0);
+			digit = cat_2(digit,d_prime);
 		}
 		
-		int r_d = stod(digit,base);
-
+		int r_d = stod(digit,10);
+		
 		if (r_d > base)
 		{
 			return -1;
