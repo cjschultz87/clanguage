@@ -311,8 +311,7 @@ int atod(str sierra,int base)
 }
 
 str divide_str(str sierra,int base,char mode)
-{
-	
+{	
 	int sierra_len = sLen(sierra);
 	
 	str sierra_prime = "";
@@ -350,7 +349,7 @@ str divide_str(str sierra,int base,char mode)
 		
 		int quotient = strToL(divisor,10) / base;
 		
-		if (quotient > 0)
+		if (quotient >= 0)
 		{
 			sierra_prime = cat_2(sierra_prime,strToN(quotient,10));
 		}
@@ -359,7 +358,8 @@ str divide_str(str sierra,int base,char mode)
 		
 		i = i_1 + 1;
 		
-		if (i < sierra_len && quotient > 0)
+		//if (i < sierra_len && quotient != 0)
+		if (i < sierra_len)
 		{
 			sierra_prime = cat_2(sierra_prime,",");
 		}
