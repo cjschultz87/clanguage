@@ -3,7 +3,7 @@
 #include "array.h"
 #include "strings.h"
 
-int power(int base,int exp);
+long power(int base,int exp);
 
 int sLen(str S);
 
@@ -11,11 +11,13 @@ char* select(char* C);
 
 str cat_2(str a,str b);
 
+str plus_d(str a,str b);
+
 int stod(str sierra,int base);
 
 str dtos(int d,int base);
 
-int atod(str sierra,int base);
+str atod(str sierra,int base);
 
 str divide_str(str sierra,int base,char mode);
 
@@ -65,16 +67,14 @@ void main(int argc, char** argv)
 		}
 	}
 	
-	int input_decimal = atod(argv[1],strToL(argv[2],10));
+	str input_str = atod(argv[1],strToL(argv[2],10));
 	
-	if (input_decimal == -1)
+	if (strCompare(input_str,"badbase") == 1)
 	{
 		printf("digit values should be smaller than the input base");
 		
 		goto endoffunction;
 	}
-	
-	str input_str = dtos(input_decimal,10);
 	
 	int output_base = strToL(argv[3],10);
 	
@@ -82,14 +82,24 @@ void main(int argc, char** argv)
 	
 	while (1 > 0)
 	{
-		int digit = strToL(divide_str(input_str,output_base,0),10);
+		long digit = strToL(divide_str(input_str,output_base,0),10);
 		
 		alpha_digits = arrayAppend(digit,alpha_digits);
 		
 		input_str = divide_str(input_str,output_base,1);
 		
-		if (atod(input_str,10) < 1)
+		char boole = 1;
+		
+		for (int i = 0; i < sLen(input_str); i++)
 		{	
+			if (!(input_str[i] == '0') && !(input_str[i] == ','))
+			{
+				boole = 0;
+			}
+		}
+		
+		if (boole == 1)
+		{
 			break;
 		}
 	}
@@ -115,7 +125,7 @@ void main(int argc, char** argv)
 
 /////////////////////////////////
 
-int power(int base,int exp)
+long power(int base,int exp)
 {
 	int rVal = 1;
 	
@@ -175,7 +185,7 @@ str cat_2(str a, str b)
 	
 	int cat_len = a_len + b_len;
 	
-	str cat_return = calloc(cat_len,sizeof(char));
+	str cat_return = calloc(cat_len + 1,sizeof(char));
 	
 	for (int i = 0; i < a_len; i++)
 	{
@@ -187,7 +197,114 @@ str cat_2(str a, str b)
 		cat_return[i] = b[i - a_len];
 	}
 	
+	cat_return[cat_len] = 0;
+	
 	return cat_return;
+}
+
+str plus_d(str a, str b)
+{
+	str rVal = "";
+	
+	int len_a = sLen(a);
+	
+	int len_b = sLen(b);
+	
+	str alpha = "";
+	str bravo = "";
+	
+	if (len_a > len_b)
+	{
+		for (int i = 0; i < len_a; i++)
+		{
+			str a_c = calloc(1,sizeof(char));
+			
+			a_c[0] = a[i];
+			
+			alpha = cat_2(alpha,a_c);
+			
+			if (i < len_b)
+			{
+				str b_c = calloc(1,sizeof(char));
+				
+				b_c[0] = b[i];
+				
+				bravo = cat_2(bravo,b_c);
+			}
+			else
+			{
+				bravo = cat_2("0",bravo);
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < len_b; i++)
+		{
+			str b_c = calloc(1,sizeof(char));
+			
+			b_c[0] = b[i];
+			
+			alpha = cat_2(alpha,b_c);
+			
+			if (i < len_a)
+			{
+				str a_c = calloc(1,sizeof(char));
+				
+				a_c[0] = a[i];
+				
+				bravo = cat_2(bravo,a_c);
+			}
+			else
+			{
+				bravo = cat_2("0",bravo);
+			}
+		}
+	}
+	
+	str carry = "0";
+	
+	char boole = 1;
+	
+	for (int i = sLen(alpha) - 1; boole == 1; i--)
+	{
+		str a_d = calloc(1,sizeof(char)); 
+		
+		str b_d = calloc(1,sizeof(char));
+		
+		if (i >= 0)
+		{
+			a_d[0] = alpha[i];
+			b_d[0] = bravo[i];
+		}
+		else
+		{
+			a_d[0] = '0';
+			b_d[0] = '0';
+		}
+		
+		str digit = strToN((strToL(a_d,10) + strToL(b_d,10) + strToL(carry,10)),10);
+		
+		if (strToL(digit,10) > 9)
+		{
+			carry = "1";
+		}
+		else
+		{
+			carry = "0";
+		}
+		
+		digit = strToN(strToL(digit,10) % 10,10);
+		
+		rVal = cat_2(digit,rVal);
+		
+		if (i == 0 && !(strToL(carry,10) > 0))
+		{
+			boole = 0;
+		}
+	}
+	
+	return rVal;
 }
 
 int stod(str sierra,int base)
@@ -250,11 +367,11 @@ str dtos(int d,int base)
 	return rVal;
 }
 
-int atod(str sierra,int base)
+str atod(str sierra,int base)
 {
 	int N = sLen(sierra);
 	
-	int rVal = 0;
+	str rVal = "0";
 	
 	int exp_i = 0;
 	
@@ -276,7 +393,7 @@ int atod(str sierra,int base)
 		{
 			i_1++;
 			
-			if (i_1 == N)
+			if (i_1 >= N)
 			{
 				break;
 			}
@@ -293,21 +410,37 @@ int atod(str sierra,int base)
 			digit = cat_2(digit,d_prime);
 		}
 		
-		int r_d = stod(digit,10);
+		long r_d = stod(digit,10);
 		
 		if (r_d > base)
 		{
-			return -1;
+			return "badbase";
 		}
 		
-		rVal += r_d * power(base,N_d - (exp_i + 1));
+		rVal = plus_d(rVal,strToN((long)(r_d * power(base,N_d - (exp_i + 1))),10));
 		
 		exp_i++;
 		
 		i = i_1 + 1;
 	}
 	
-	return rVal;
+	int L = 2*sLen(rVal) - 1;
+	
+	str rVal_prime = calloc(L,sizeof(char));
+	
+	for (int i = 0; i < L; i++)
+	{
+		rVal_prime[i] = rVal[(i+1)/2];
+		
+		i++;
+		
+		if (i < L - 1)
+		{
+			rVal_prime[i] = ',';
+		}
+	}
+	
+	return rVal_prime;
 }
 
 str divide_str(str sierra,int base,char mode)
