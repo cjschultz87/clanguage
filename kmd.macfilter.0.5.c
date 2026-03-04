@@ -214,7 +214,7 @@ static NTSTATUS DriverEntry(
 				{
 					n_1 = i_c;
 				}
-				if (n_0 != -1 & n_1 != -1)
+				if (n_0 != -1 && n_1 != -1)
 				{
 					break;
 				}
