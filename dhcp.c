@@ -447,7 +447,7 @@ void main(int argc, str* argv)
 	
 	sockErr = bind(
 		dhcpSocket,								// s (socket)
-		(struct sockaddr*)&sourceAddr,			// sockaddr *name (source info)
+		(const struct sockaddr*)&sourceAddr,	// sockaddr *name (source info)
 		sizeof(sourceAddr)						// namelen
 	);
 	
@@ -573,7 +573,7 @@ void main(int argc, str* argv)
 	
 	sockSend = sendto(
 		dhcpSocket,				// s (socket)
-		payload,		// data *buffer
+		payload,				// data *buffer
 		dRDL,					// len
 		dRDFlags,				// flags
 		&destinationAddr,		// *to (port address data)
@@ -615,8 +615,8 @@ void main(int argc, str* argv)
 		maskAddress += maskArray[3-i] * power(256, 3-i);
 	}
 	
-	PULONG ipChangeContext;
-	PULONG ipInstance;
+	PULONG ipChangeContext = calloc(1,sizeof(PULONG));
+	PULONG ipInstance = calloc(1,sizeof(PULONG));
 	
 	DWORD adapterIndex = strToL(adapterIndexS,10);
 	
@@ -646,21 +646,37 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
+	/*
+	int sMode = 1;			// nonblocking socket
+	
+	sockErr = ioctlsocket(
+		dhcpSocket,			// socket
+		FIONBIO,			// arg
+		&sMode				// nonblocking mode int
+	);
+	*/
+	
+	
 	sourceAddr.sin_family = AF_INET;
 	sourceAddr.sin_port = htons(68);
 	
+	/*
 	sourceAddr.sin_addr.S_un.S_addr = 0;
 	
 	for (int i = 0; i < 4; i++)
 	{
 		sourceAddr.sin_addr.S_un.S_addr += requested[3-i] * power(256, 3-i);
 	}
+	*/
+	
+	sourceAddr.sin_addr.S_un.S_addr = sourceAddrChange;
 	
 	sockErr = bind(
-		dhcpSocket,				// s (socket)
-		&sourceAddr,			// sockaddr *name (source info)
-		sizeof(sourceAddr)		// namelen
+		dhcpSocket,							// s (socket)
+		(const struct sockaddr*)&sourceAddr,		// sockaddr *name (source info)
+		sizeof(sourceAddr)					// namelen
 	);
+	
 	
 	bravo = sockErrSwitch(sockErr);
 	
@@ -669,34 +685,57 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
-	dRDL = 303 - 28;
+	dRDL = 374 - difference;
 	
-	payload = calloc(dRDL,sizeof(BYTE));
-	
+	BYTE* payload_rec = calloc(dRDL,sizeof(BYTE));
 	
 	int sockRecv;
 	
 	sockRecv = recv(
 		dhcpSocket,				// s (socket)
-		payload,				// *buf (payload in)
+		payload_rec,			// *buf (payload in)
 		dRDL,					// len (of payload)
 		0						// flags
 	);
+	
+	/*
+	WaitForSingleObject(
+		(HANDLE)sockRecv,
+		5000
+	);
+	*/
+	
+	int recErr = WSAGetLastError();
+	
+	if (recErr != 0)
+	{
+		printf("socket error: %d, recv error.\n", recErr);
+		
+		goto endoffunction;
+	}
+	
+	
+	printf("%d bytes received in frame.\n", sockRecv);
+	
+	if (sockRecv == 0)
+	{
+		goto endoffunction;
+	}
 	
 	BYTE* newAddress = calloc(4,sizeof(BYTE));
 	
 	
 	assignData(
-		44 - 28,			// lowerBoundIn
-		0,					// lowerBoundOut
-		4,					// magnitude
-		payload,			// alphaIn
-		newAddress			// alphaOut
+		44 - difference,		// lowerBoundIn
+		0,						// lowerBoundOut
+		4,						// magnitude
+		payload_rec,			// alphaIn
+		newAddress				// alphaOut
 	);
 	
 	
 	// in case of a nak response
-	
+	/*
 	if (
 		newAddress[0] == 0 
 		&& newAddress[1] == 0
@@ -720,6 +759,7 @@ void main(int argc, str* argv)
 			ipInstance					// NTEinstance
 		);
 	}
+	*/
 	
 	printf("new address: ");
 	
