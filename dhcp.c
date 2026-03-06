@@ -15,6 +15,8 @@
 
 #pragma comment(lib, "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\um\\x64\\iphlpapi.lib")
 
+#pragma comment(lib, "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\um\\x64\\AdvAPI32.Lib")
+
 /////////////////////////////////////////
 
 int power(int base, int N)
@@ -263,8 +265,50 @@ BOOL sockErrSwitch(int sockErr)
 ///////////////////////////////////////
 
 
+BOOL eCheck()
+{
+	HANDLE hotel = NULL;
+	
+	if (OpenProcessToken(
+		GetCurrentProcess(),
+		TOKEN_QUERY,
+		&hotel))
+	{
+		TOKEN_ELEVATION eToken;
+		
+		DWORD teSize = sizeof(TOKEN_ELEVATION);
+		
+		if (GetTokenInformation(
+				hotel,
+				TokenElevation,
+				&eToken,
+				sizeof(eToken),
+				&teSize
+			) && eToken.TokenIsElevated)
+			{
+				return TRUE;
+			}
+	}
+	
+	return FALSE;
+}
+
+///////////////////////////////////////
+
+
 void main(int argc, str* argv)
-{	
+{
+	int sockErr = -1;
+	
+	BOOL elevation = eCheck();
+	
+	if (elevation == FALSE)
+	{
+		printf("command requires elevation.\n");
+		
+		goto endoffunction;
+	}
+		
 	if (argc != 8)
 	{
 		printf("use args: <server ipv4> <gateway ipv4> <gateway mask> <client ipv4> <requested ipv4> <client mac> <adapter index>\n");
@@ -410,7 +454,6 @@ void main(int argc, str* argv)
 		}
 	}
 	
-	int sockErr;
 	
 	////////////////////
 	// dhcp request send
@@ -778,5 +821,9 @@ void main(int argc, str* argv)
 	
 	endoffunction:{};
 	
-	sockErr = closesocket(dhcpSocket);
+	if (sockErr > -1)
+	{
+		sockErr = closesocket(dhcpSocket);
+	}
+	
 }
