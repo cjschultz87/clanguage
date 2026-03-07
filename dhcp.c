@@ -778,7 +778,6 @@ void main(int argc, str* argv)
 	
 	
 	// in case of a nak response
-	/*
 	if (
 		newAddress[0] == 0 
 		&& newAddress[1] == 0
@@ -790,7 +789,7 @@ void main(int argc, str* argv)
 		
 		for (int i = 0; i < 4; i++)
 		{
-			sourceAddrChange += requested[3-i] * power(256, 3-i);
+			sourceAddrChange += client[3-i] * power(256, 3-i);
 		}
 		
 		
@@ -802,7 +801,6 @@ void main(int argc, str* argv)
 			ipInstance					// NTEinstance
 		);
 	}
-	*/
 	
 	printf("new address: ");
 	
@@ -827,3 +825,4 @@ void main(int argc, str* argv)
 	}
 	
 }
+
