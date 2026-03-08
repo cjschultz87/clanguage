@@ -607,7 +607,7 @@ void main(int argc, str* argv)
 	
 	if (startupErr != 0)
 	{
-		printf("couldn't start socket: ");
+		printf("couldn't start wsa: ");
 		
 		switch (startupErr)
 		{
@@ -655,6 +655,8 @@ void main(int argc, str* argv)
 	
 	if (dhcpSocketErr == FALSE)
 	{
+		printf("couldn't open socket for request.\n");
+		
 		goto endoffunction;
 	}
 	
@@ -683,6 +685,8 @@ void main(int argc, str* argv)
 	
 	if (bravo == FALSE)
 	{
+		printf("couldn't bind client information for socket.\n");
+		
 		goto endoffunction;
 	}
 	
@@ -709,10 +713,17 @@ void main(int argc, str* argv)
 		requested			// requested ipv4 address
 	);
 	
+	bravo = sockErrSwitch(sockErr);
+	
+	sockErr = -1;
+	
 	if (bravo == FALSE)
 	{
+		printf("couldn't send request.\n");
+		
 		goto endoffunction;
 	}
+	
 	
 	
 	
@@ -763,6 +774,8 @@ void main(int argc, str* argv)
 	
 	if (dhcpSocketErr == FALSE)
 	{
+		printf("couldn't open socket for reception.\n");
+		
 		goto endoffunction;
 	}
 	
@@ -800,8 +813,12 @@ void main(int argc, str* argv)
 	
 	bravo = sockErrSwitch(sockErr);
 	
+	sockErr = -1;
+	
 	if (bravo == FALSE)
 	{
+		printf("couldn't bind client information for receiving socket.\n");
+		
 		goto endoffunction;
 	}
 	
@@ -818,6 +835,8 @@ void main(int argc, str* argv)
 		dRDL,					// len (of payload)
 		0						// flags
 	);
+	
+	sockErr = closesocket(dhcpSocket);
 	
 	/*
 	WaitForSingleObject(
@@ -899,9 +918,7 @@ void main(int argc, str* argv)
 		);
 	}
 	else
-	{
-		sockErr = closesocket(dhcpSocket);
-		
+	{	
 		printf("new address: ");
 	
 		for (int i = 0; i < 4; i++)
@@ -999,3 +1016,4 @@ void main(int argc, str* argv)
 	}
 	
 }
+
