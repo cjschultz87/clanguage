@@ -1,6 +1,9 @@
 #include "winsock2.h"
 #include "ws2tcpip.h"
 #include "iphlpapi.h"
+
+#include "combaseapi.h"
+
 #include "ws2tcpip.h"
 #include "windows.h"
 
@@ -16,6 +19,10 @@
 #pragma comment(lib, "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\um\\x64\\iphlpapi.lib")
 
 #pragma comment(lib, "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\um\\x64\\AdvAPI32.Lib")
+
+#pragma comment(lib, "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\um\\x64\\Ole32.Lib")
+
+#pragma comment(lib, "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\um\\x64\\OneCore.Lib")
 
 /////////////////////////////////////////
 
@@ -110,18 +117,32 @@ BOOL sErr(SOCKET sierra)
 
 
 void assignData(int lowerBoundIn, int lowerBoundOut, int magnitude, void* alphaIn, void* alphaOut)
-{
+{	
 	BYTE* alpha_primeIn = alphaIn;
-	alpha_primeIn += lowerBoundIn;
+	if (magnitude < 0)
+	{
+		alpha_primeIn += lowerBoundIn + abs(magnitude) - 1;
+	}
+	else
+	{
+		alpha_primeIn += lowerBoundIn;
+	}
 	
 	BYTE* alpha_primeOut = alphaOut;
 	alpha_primeOut += lowerBoundOut;
 	
-	for (int i = 0; i < magnitude; i++)
+	for (int i = 0; i < abs(magnitude); i++)
 	{
 		*alpha_primeOut = *alpha_primeIn;
+		if (magnitude < 0)
+		{
+			alpha_primeIn--;
+		}
+		else
+		{
+			alpha_primeIn++;
+		}
 		
-		alpha_primeIn++;
 		alpha_primeOut++;
 	}
 }
@@ -402,6 +423,14 @@ void main(int argc, str* argv)
 	
 	printf("\n");
 	
+	
+	
+	/////////////////
+	// initial socket
+	/////////////////
+	
+	
+	
 	WSADATA whiskeyData = { 0 };
 	
 	LPBYTE whiskeyVersion = calloc(2,sizeof(BYTE));
@@ -644,6 +673,23 @@ void main(int argc, str* argv)
 	// set up the new ipv4 address
 	///////////////////////////////
 	
+	
+	u_long clientAddrDelete = 0;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		clientAddrDelete += client[3-i] * power(256, 3-i);
+	}
+	
+	DWORD deleteAddrN = DeleteIPAddress(
+		clientAddrDelete	// original client address
+	);
+	
+	if (deleteAddrN != NO_ERROR)
+	{
+		printf("%u couldn't delete original address.\n", deleteAddrN);
+	}
+	
 	u_long sourceAddrChange = 0;
 	
 	for (int i = 0; i < 4; i++)
@@ -786,6 +832,22 @@ void main(int argc, str* argv)
 		&& newAddress[3] == 0
 	)
 	{
+		clientAddrDelete = 0;
+	
+		for (int i = 0; i < 4; i++)
+		{
+			clientAddrDelete += requested[3-i] * power(256, 3-i);
+		}
+	
+		DWORD deleteAddrN = DeleteIPAddress(
+			clientAddrDelete	// original client address
+		);
+	
+		if (deleteAddrN != NO_ERROR)
+		{
+			printf("%u couldn't delete new address.\n", deleteAddrN);
+		}
+		
 		sourceAddrChange = 0;
 		
 		for (int i = 0; i < 4; i++)
@@ -827,4 +889,3 @@ void main(int argc, str* argv)
 	}
 	
 }
-
