@@ -285,6 +285,160 @@ BOOL sockErrSwitch(int sockErr)
 
 ///////////////////////////////////////
 
+BOOL dhcpSend(BYTE mode, SOCKET dhcpSocket, struct sockaddr_in destinationAddr, BYTE* client, BYTE* macArray, BYTE* server, BYTE* requested)
+{
+	int maxSize = 289;
+	
+	int modeSize = 0;
+	if (mode == 0)
+	{
+		printf("sending request\n");
+		modeSize = 6;
+	}
+	else if (mode == 1)
+	{
+		printf("releasing original ipv4 address\n");
+		modeSize = 3;
+	}
+	
+	maxSize += modeSize;
+	
+	int difference = 28;
+	int dRDL = maxSize - (difference + 1);
+	int dRDFlags = 0;
+	
+	dRDFlags = dRDFlags | MSG_DONTROUTE;
+	
+	BYTE* payload = calloc(dRDL,sizeof(BYTE));
+	
+	payload[0] = (BYTE)(0x01);			// OP
+	payload[1] = (BYTE)(0x01);			// HTYPE
+	payload[2] = (BYTE)(0x06);			// HLEN
+	payload[3] = (BYTE)(0x00);			// HOPS
+	
+	payload[4] = (BYTE)rand();			// xid[0]
+	payload[5] = (BYTE)rand();			// xid[1]
+	payload[6] = (BYTE)rand();			// xid[2]
+	payload[7] = (BYTE)rand();			// xid[3]
+	
+	assignData(
+		0,					// lowerBoundIn
+		40 - difference,	// lowerBoundOut
+		4,					// magnitude
+		client,				// alphaIn
+		payload				// alphaOut
+	);
+	
+	assignData(
+		0,					// lowerBoundIn
+		56 - difference,	// lowerBoundOut
+		6,					// magnitude
+		macArray,			// alphaIn
+		payload				// alphaOut
+	);
+	
+	// magic number
+	payload[264 - difference] = (BYTE)(0x63);
+	payload[265 - difference] = (BYTE)(0x82);
+	payload[266 - difference] = (BYTE)(0x53);
+	payload[267 - difference] = (BYTE)(0x63);
+	
+	// option: dhcp message Type
+	payload[268 - difference] = (BYTE)(0x35);
+	payload[269 - difference] = (BYTE)(0x01);
+	payload[270 - difference] = (BYTE)(0x03);
+	
+	// option: client identifier
+	payload[271 - difference] = (BYTE)(0x3d);
+	payload[272 - difference] = (BYTE)(0x07);
+	payload[273 - difference] = (BYTE)(0x01);
+	
+	assignData(
+		0,					// lowerBoundIn
+		274 - difference,	// lowerBoundOut
+		6,					// magnitude
+		macArray,			// alphaIn
+		payload				// alphaOut
+	);
+	
+	// option: dhcp server address
+	payload[280 - difference] = (BYTE)(0x36);
+	payload[281 - difference] = (BYTE)(0x04);
+	
+	assignData(
+		0,					// lowerBoundIn
+		282 - difference,	// lowerBoundOut
+		4,					// magnitude
+		server,				// alphaIn
+		payload				// alphaOut
+	);
+	
+	if (mode == 0)
+	{
+		// option: requested ipv4 address
+		payload[286 - difference] = (BYTE)(0x32);
+		payload[287 - difference] = (BYTE)(0x04);
+	
+		assignData(
+			0,					// lowerBoundIn
+			288 - difference,	// lowerBoundOut
+			4,					// magnitude
+			requested,			// alphaIn
+			payload				// alphaOut
+		);
+	}
+	else if (mode == 1)
+	{
+		// option: release ipv4 address
+		payload[286 - difference] = (BYTE)(0x35);
+		payload[287 - difference] = (BYTE)(0x01);
+		payload[288 - difference] = (BYTE)(0x07);
+	}
+	
+	// option: end
+	
+	payload[286 + modeSize - difference] = (BYTE)(0xff);
+	payload[287 + modeSize - difference] = (BYTE)(0x00);
+	payload[288 + modeSize - difference] = (BYTE)(0x00);
+	
+	
+	////////
+	// send
+	////////
+	
+	int sockSend;
+	
+	sockSend = sendto(
+		dhcpSocket,				// s (socket)
+		payload,				// data *buffer
+		dRDL,					// len
+		dRDFlags,				// flags
+		&destinationAddr,		// *to (port address data)
+		sizeof(destinationAddr)	// tolen
+	);
+	
+	BOOL bravo = sErr(sockSend);
+	
+	if (bravo == FALSE)
+	{
+		return FALSE;
+	}
+	
+	int sockErr = closesocket(dhcpSocket);
+	
+	BOOL dhcpSocketErr = sockErrSwitch(sockErr);
+	
+	if (dhcpSocketErr == FALSE)
+	{
+		return FALSE;
+	}
+	
+	return TRUE;
+}
+
+
+///////////////////////////////////////
+
 
 BOOL eCheck()
 {
@@ -545,150 +699,27 @@ void main(int argc, str* argv)
 	}
 	
 	
-	
-	char* dhcpRequestData;
-	int maxSize = 295;
-	int difference = 28;
-	int dRDL = maxSize - (difference + 1);
-	int dRDFlags = 0;
-	
-	dRDFlags = dRDFlags | MSG_DONTROUTE;
-	
-	BYTE* payload = calloc(dRDL,sizeof(BYTE));
-	
-	payload[0] = (BYTE)(0x01);			// OP
-	payload[1] = (BYTE)(0x01);			// HTYPE
-	payload[2] = (BYTE)(0x06);			// HLEN
-	payload[3] = (BYTE)(0x00);			// HOPS
-	
-	payload[4] = (BYTE)rand();			// xid[0]
-	payload[5] = (BYTE)rand();			// xid[1]
-	payload[6] = (BYTE)rand();			// xid[2]
-	payload[7] = (BYTE)rand();			// xid[3]
-	
-	assignData(
-		0,					// lowerBoundIn
-		40 - difference,	// lowerBoundOut
-		4,					// magnitude
-		client,				// alphaIn
-		payload				// alphaOut
+	bravo = dhcpSend(
+		0,					// request
+		dhcpSocket,			// socket
+		destinationAddr,	// destination addr_in
+		client, 			// client byte array
+		macArray,			// client mac byte array
+		server,				// dhcp server
+		requested			// requested ipv4 address
 	);
-	
-	assignData(
-		0,					// lowerBoundIn
-		56 - difference,	// lowerBoundOut
-		6,					// magnitude
-		macArray,			// alphaIn
-		payload				// alphaOut
-	);
-	
-	// magic number
-	payload[264 - difference] = (BYTE)(0x63);
-	payload[265 - difference] = (BYTE)(0x82);
-	payload[266 - difference] = (BYTE)(0x53);
-	payload[267 - difference] = (BYTE)(0x63);
-	
-	// option: dhcp message Type
-	payload[268 - difference] = (BYTE)(0x35);
-	payload[269 - difference] = (BYTE)(0x01);
-	payload[270 - difference] = (BYTE)(0x03);
-	
-	// option: client identifier
-	payload[271 - difference] = (BYTE)(0x3d);
-	payload[272 - difference] = (BYTE)(0x07);
-	payload[273 - difference] = (BYTE)(0x01);
-	
-	assignData(
-		0,					// lowerBoundIn
-		274 - difference,	// lowerBoundOut
-		6,					// magnitude
-		macArray,			// alphaIn
-		payload				// alphaOut
-	);
-	
-	// option: requested ipv4 address
-	payload[280 - difference] = (BYTE)(0x32);
-	payload[281 - difference] = (BYTE)(0x04);
-	
-	assignData(
-		0,					// lowerBoundIn
-		282 - difference,	// lowerBoundOut
-		4,					// magnitude
-		requested,			// alphaIn
-		payload				// alphaOut
-	);
-	
-	// option: dhcp server address
-	payload[286 - difference] = (BYTE)(0x36);
-	payload[287 - difference] = (BYTE)(0x04);
-	
-	assignData(
-		0,					// lowerBoundIn
-		288 - difference,	// lowerBoundOut
-		4,					// magnitude
-		server,				// alphaIn
-		payload				// alphaOut
-	);
-	
-	// option: end
-	
-	payload[292 - difference] = (BYTE)(0xff);
-	payload[293 - difference] = (BYTE)(0x00);
-	payload[294 - difference] = (BYTE)(0x00);
-	
-	
-	////////
-	// send
-	////////
-	
-	int sockSend;
-	
-	sockSend = sendto(
-		dhcpSocket,				// s (socket)
-		payload,				// data *buffer
-		dRDL,					// len
-		dRDFlags,				// flags
-		&destinationAddr,		// *to (port address data)
-		sizeof(destinationAddr)	// tolen
-	);
-	
-	bravo = sErr(sockSend);
 	
 	if (bravo == FALSE)
 	{
 		goto endoffunction;
 	}
 	
-	sockErr = closesocket(dhcpSocket);
-	
-	dhcpSocketErr = sockErrSwitch(sockErr);
-	
-	if (dhcpSocketErr == FALSE)
-	{
-		goto endoffunction;
-	}
 	
 	
 	///////////////////////////////
 	// set up the new ipv4 address
 	///////////////////////////////
 	
-	
-	u_long clientAddrDelete = 0;
-	
-	for (int i = 0; i < 4; i++)
-	{
-		clientAddrDelete += client[3-i] * power(256, 3-i);
-	}
-	
-	DWORD deleteAddrN = DeleteIPAddress(
-		clientAddrDelete	// original client address
-	);
-	
-	if (deleteAddrN != NO_ERROR)
-	{
-		printf("%u couldn't delete original address.\n", deleteAddrN);
-	}
 	
 	u_long sourceAddrChange = 0;
 	
@@ -774,7 +805,8 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
-	dRDL = 374 - difference;
+	int difference = 28;
+	int dRDL = 374 - difference;
 	
 	BYTE* payload_rec = calloc(dRDL,sizeof(BYTE));
 	
@@ -825,6 +857,8 @@ void main(int argc, str* argv)
 	
 	// in case of a nak response
 	
+	u_long clientAddrDelete = 0;
+	
 	if (
 		newAddress[0] == 0 
 		&& newAddress[1] == 0
@@ -832,7 +866,7 @@ void main(int argc, str* argv)
 		&& newAddress[3] == 0
 	)
 	{
-		clientAddrDelete = 0;
+		printf("no acknowledged ipv4 address.\n");
 	
 		for (int i = 0; i < 4; i++)
 		{
@@ -864,21 +898,97 @@ void main(int argc, str* argv)
 			ipInstance					// NTEinstance
 		);
 	}
-	
-	
-	printf("new address: ");
-	
-	for (int i = 0; i < 4; i++)
+	else
 	{
-		printf("%d",newAddress[i]);
+		sockErr = closesocket(dhcpSocket);
 		
-		if (i < 3)
+		printf("new address: ");
+	
+		for (int i = 0; i < 4; i++)
 		{
-			printf(".");
+			printf("%d",newAddress[i]);
+		
+			if (i < 3)
+			{
+				printf(".");
+			}
+		}
+	
+		printf("\n");
+		/*
+		dhcpSocket = socket(
+			AF_INET,			// af
+			SOCK_DGRAM,			// type
+			IPPROTO_UDP			// protocol
+		);
+		
+		sourceAddr.sin_family = AF_INET;
+		sourceAddr.sin_port = htons(68);
+	
+		sourceAddr.sin_addr.S_un.S_addr = 0;
+	
+		for (int i = 0; i < 4; i++)
+		{
+			sourceAddr.sin_addr.S_un.S_addr += client[3-i] * power(256, 3-i);
+		}
+	
+		sockErr = bind(
+			dhcpSocket,								// s (socket)
+			(const struct sockaddr*)&sourceAddr,	// sockaddr *name (source info)
+			sizeof(sourceAddr)						// namelen
+		);
+	
+		BOOL bravo;
+	
+		bravo = sockErrSwitch(sockErr);
+	
+		if (bravo == FALSE)
+		{
+			goto endoffunction;
+		}
+	
+		destinationAddr.sin_family = AF_INET;
+		destinationAddr.sin_port = htons(67);
+	
+		destinationAddr.sin_addr.S_un.S_addr = 0;
+	
+		for (int i = 0; i < 4; i++)
+		{
+			destinationAddr.sin_addr.S_un.S_addr += gateway[3-i] * power(256, 3-i);
+		}
+		
+		bravo = dhcpSend(
+			1,					// request
+			dhcpSocket,			// socket
+			destinationAddr,	// destination addr_in
+			client, 			// client byte array
+			macArray,			// client mac byte array
+			server,				// dhcp server
+			requested			// requested ipv4 address
+		);
+	
+		if (bravo == FALSE)
+		{
+			goto endoffunction;
+		}
+		*/
+		
+		// delete the original address
+		
+		for (int i = 0; i < 4; i++)
+		{
+			clientAddrDelete += client[3-i] * power(256, 3-i);
+		}
+	
+		DWORD deleteAddrN = DeleteIPAddress(
+			clientAddrDelete	// original client address
+		);
+	
+		if (deleteAddrN != NO_ERROR)
+		{
+			printf("%u couldn't delete original address.\n", deleteAddrN);
 		}
 	}
-	
-	printf("\n");
 	
 	
 	endoffunction:{};
