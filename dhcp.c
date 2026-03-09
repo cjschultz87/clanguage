@@ -285,7 +285,7 @@ BOOL sockErrSwitch(int sockErr)
 
 ///////////////////////////////////////
 
-BOOL dhcpSend(BYTE mode, SOCKET dhcpSocket, struct sockaddr_in destinationAddr, BYTE* client, BYTE* macArray, BYTE* server, BYTE* requested)
+BOOL dhcpSend(BYTE mode, SOCKET dhcpSocket, struct sockaddr_in destinationAddr, BYTE* client, BYTE* macArray, BYTE* server, BYTE* requested, BYTE* xid)
 {
 	int maxSize = 289;
 	
@@ -316,10 +316,13 @@ BOOL dhcpSend(BYTE mode, SOCKET dhcpSocket, struct sockaddr_in destinationAddr, 
 	payload[2] = (BYTE)(0x06);			// HLEN
 	payload[3] = (BYTE)(0x00);			// HOPS
 	
-	payload[4] = (BYTE)rand();			// xid[0]
-	payload[5] = (BYTE)rand();			// xid[1]
-	payload[6] = (BYTE)rand();			// xid[2]
-	payload[7] = (BYTE)rand();			// xid[3]
+	assignData(
+		0,					// lowerBoundIn
+		4,					// lowerBoundOut
+		4,					// magnitude
+		xid,				// alphaIn
+		payload				// alphaOut
+	);
 	
 	assignData(
 		0,					// lowerBoundIn
@@ -578,6 +581,16 @@ void main(int argc, str* argv)
 	printf("\n");
 	
 	
+	BYTE* xid = calloc(4,sizeof(BYTE));
+	
+	xid[0] = (BYTE)rand();
+	xid[1] = (BYTE)rand();
+	xid[2] = (BYTE)rand();
+	xid[3] = (BYTE)rand();
+	
+	BYTE* xidRec = calloc(4,sizeof(BYTE));
+	
+	
 	
 	/////////////////
 	// initial socket
@@ -710,7 +723,8 @@ void main(int argc, str* argv)
 		client, 			// client byte array
 		macArray,			// client mac byte array
 		server,				// dhcp server
-		requested			// requested ipv4 address
+		requested,			// requested ipv4 address
+		xid					// xid
 	);
 	
 	bravo = sockErrSwitch(sockErr);
@@ -763,6 +777,10 @@ void main(int argc, str* argv)
 	/////////////////////
 	// dhcp offer receive
 	/////////////////////
+	
+	BYTE* newAddress = calloc(4,sizeof(BYTE));
+	
+	startDHCPRec:{};
 	
 	dhcpSocket = socket(
 		AF_INET,			// af
@@ -862,8 +880,29 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
-	BYTE* newAddress = calloc(4,sizeof(BYTE));
 	
+	xidRec = calloc(4,sizeof(BYTE));
+	
+	assignData(
+		32 - difference,		// lowerBoundIn
+		0,						// lowerBoundOut
+		4,						// magnitude
+		payload_rec,			// alphaIn
+		xidRec					// alphaOut
+	);
+	
+	for (int i = 0; i < 4; i++)
+	{
+		if (xid[i] != xidRec[i])
+		{
+			printf("received different xid.\n");
+			
+			goto startDHCPRec;
+		}
+	}
+	
+	
+	newAddress = calloc(4,sizeof(BYTE));
 	
 	assignData(
 		44 - difference,		// lowerBoundIn
@@ -872,6 +911,9 @@ void main(int argc, str* argv)
 		payload_rec,			// alphaIn
 		newAddress				// alphaOut
 	);
+
+	
+	
 	
 	
 	// in case of a nak response
@@ -910,7 +952,7 @@ void main(int argc, str* argv)
 		
 		
 		AddIPAddress(
-			sourceAddrChange,		// new address
+			sourceAddrChange,			// new address
 			maskAddress,				// ip mask
 			adapterIndex,				// ifindex
 			ipChangeContext,			// NTEcontext
@@ -981,7 +1023,8 @@ void main(int argc, str* argv)
 			client, 			// client byte array
 			macArray,			// client mac byte array
 			server,				// dhcp server
-			requested			// requested ipv4 address
+			requested,			// requested ipv4 address
+			xid					// xid
 		);
 	
 		if (bravo == FALSE)
@@ -1016,4 +1059,3 @@ void main(int argc, str* argv)
 	}
 	
 }
-
