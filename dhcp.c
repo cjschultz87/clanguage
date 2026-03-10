@@ -841,11 +841,15 @@ void main(int argc, str* argv)
 	int difference = 28;
 	int dRDL = 374 - difference;
 	
-	BYTE* payload_rec = calloc(dRDL,sizeof(BYTE));
+	BYTE* payload_rec;
 	
 	int sockRecv;
 	
+	int recErr;
+	
 	startDHCPRec:{};
+	
+	payload_rec = calloc(dRDL,sizeof(BYTE));
 	
 	sockRecv = recv(
 		dhcpSocket,				// s (socket)
@@ -857,11 +861,12 @@ void main(int argc, str* argv)
 	
 	printf("%d bytes received in frame.\n", sockRecv);
 	
-	if (sockRecv == 0)
-	{
-		goto endoffunction;
-	}
+	recErr = WSAGetLastError();
 	
+	if (recErr != 0)
+	{
+		printf("socket error: %d, recv error.\n", recErr);
+	}
 	
 	xidRec = calloc(4,sizeof(BYTE));
 	
@@ -1059,4 +1064,5 @@ void main(int argc, str* argv)
 	}
 	
 }
+
 
