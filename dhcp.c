@@ -780,8 +780,6 @@ void main(int argc, str* argv)
 	
 	BYTE* newAddress = calloc(4,sizeof(BYTE));
 	
-	startDHCPRec:{};
-	
 	dhcpSocket = socket(
 		AF_INET,			// af
 		SOCK_DGRAM,			// type
@@ -847,30 +845,14 @@ void main(int argc, str* argv)
 	
 	int sockRecv;
 	
+	startDHCPRec:{};
+	
 	sockRecv = recv(
 		dhcpSocket,				// s (socket)
 		payload_rec,			// *buf (payload in)
 		dRDL,					// len (of payload)
 		0						// flags
 	);
-	
-	sockErr = closesocket(dhcpSocket);
-	
-	/*
-	WaitForSingleObject(
-		(HANDLE)sockRecv,
-		5000
-	);
-	*/
-	
-	int recErr = WSAGetLastError();
-	
-	if (recErr != 0)
-	{
-		printf("socket error: %d, recv error.\n", recErr);
-		
-		goto endoffunction;
-	}
 	
 	
 	printf("%d bytes received in frame.\n", sockRecv);
@@ -899,6 +881,24 @@ void main(int argc, str* argv)
 			
 			goto startDHCPRec;
 		}
+	}
+	
+	sockErr = closesocket(dhcpSocket);
+	
+	/*
+	WaitForSingleObject(
+		(HANDLE)sockRecv,
+		5000
+	);
+	*/
+	
+	int recErr = WSAGetLastError();
+	
+	if (recErr != 0)
+	{
+		printf("socket error: %d, recv error.\n", recErr);
+		
+		goto endoffunction;
 	}
 	
 	
@@ -1059,3 +1059,4 @@ void main(int argc, str* argv)
 	}
 	
 }
+
