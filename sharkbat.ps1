@@ -6,7 +6,7 @@ while ($true)
 	
 	$bravo = $true
 	
-	if (($tango -like "*$mac*") -and ($bravo -eq $true))
+	while (($tango -like "*$mac*") -and ($bravo -eq $true))
 	{
 		$iota_0 = "$(ipconfig | select-string ipv4)"
 		
