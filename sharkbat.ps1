@@ -8,15 +8,11 @@ while ($true)
 	
 	while (($tango -like "*$mac*") -and ($bravo -eq $true))
 	{
-		$iota_0 = "$(ipconfig | select-string ipv4)"
+		echo "$(get-date) requesting new ipv4 address"
 		
-		echo "requesting new ipv4 address"
+		echo "wi-fi" | powershell -executionpolicy bypass dhcpbat | tee-object -variable delta
 		
-		echo "wi-fi" | powershell -executionpolicy bypass dhcpbat
-		
-		$iota_1 = "$(ipconfig | select-string ipv4)"
-		
-		if ($iota_0 -ne $iota_1)
+		if ($delta -like "*new address*")
 		{
 			$bravo = $false
 		}
