@@ -2,6 +2,8 @@
 #include "ws2tcpip.h"
 #include "iphlpapi.h"
 
+#include "time.h"
+
 #include "combaseapi.h"
 
 #include "ws2tcpip.h"
@@ -839,13 +841,15 @@ void main(int argc, str* argv)
 	}
 	
 	int difference = 28;
-	int dRDL = 374 - difference;
+	int dRDL = 411;
 	
 	BYTE* payload_rec;
 	
 	int sockRecv;
 	
 	int recErr;
+	
+	time_t dhcpLeaseObtained = 0;
 	
 	startDHCPRec:{};
 	
@@ -858,6 +862,7 @@ void main(int argc, str* argv)
 		0						// flags
 	);
 	
+	time(&dhcpLeaseObtained);
 	
 	printf("%d bytes received in frame.\n", sockRecv);
 	
@@ -896,15 +901,6 @@ void main(int argc, str* argv)
 		5000
 	);
 	*/
-	
-	int recErr = WSAGetLastError();
-	
-	if (recErr != 0)
-	{
-		printf("socket error: %d, recv error.\n", recErr);
-		
-		goto endoffunction;
-	}
 	
 	
 	newAddress = calloc(4,sizeof(BYTE));
@@ -966,6 +962,34 @@ void main(int argc, str* argv)
 	}
 	else
 	{	
+		printf("lease obtained: %llu\n",(DWORD)dhcpLeaseObtained);
+		
+		DWORD dhcpLeaseTime = 0;
+		
+		for (int i = 248 - difference; i < dRDL; i++)
+		{
+			if (payload_rec[i] == (BYTE)0x33)
+			{
+				int n = payload_rec[i + 1];
+				
+				i += 2;
+				
+				assignData(
+					i,						// lowerBoundIn
+					0,						// lowerBoundOut
+					-4,						// magnitude
+					payload_rec,			// alphaIn
+					&dhcpLeaseTime			// alphaOut
+				);
+				
+				goto printLeaseTime;
+			}
+		}
+		
+		printLeaseTime:{};
+		
+		printf("lease time: %llu\n",dhcpLeaseTime);
+		
 		printf("new address: ");
 	
 		for (int i = 0; i < 4; i++)
@@ -1064,5 +1088,4 @@ void main(int argc, str* argv)
 	}
 	
 }
-
 
