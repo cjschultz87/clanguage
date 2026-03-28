@@ -6,7 +6,7 @@ while ($true)
 	$tango = $(tshark -i "wi-fi" -c 10 -Y "dhcp" -Y "eth.src == $mac" -Y "ip.src == 0.0.0.0" -T fields -e eth.src -e ip.src 2>null)
 	#>
 	
-	tshark -l -i wi-fi -Y dhcp -Y "eth.src == $mac" -Y "ip.src == 0.0.0.0" -T fields -e eth.src -e ip.src 2>null | select-object -first 1 | tee -variable tango
+	tshark -l -i wi-fi -Y dhcp -Y "eth.src == $mac" -Y "ip.src == 0.0.0.0" -T fields -e frame.time -e eth.src 2>null | select-object -first 1 | tee -variable tango
 	
 	$bravo = $true
 	
