@@ -493,37 +493,37 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 		
-	if (argc != 4)
+	if (argc != 5)
 	{
-		printf("use args: <gateway ipv4> <gateway mask> <number of frames>\n");
+		printf("use args: <server ipv4> <gateway ipv4> <gateway mask> <number of frames>\n");
 		
 		goto endoffunction;
 	}
 	
 	BYTE* server = calloc(4,sizeof(BYTE));
 	
-	/*
 	ip4StrToAlloc(
 		argv[1],
 		server
 	);
-	*/
 	
 	BYTE* gateway = calloc(4,sizeof(BYTE));
 	
 	ip4StrToAlloc(
-		argv[1],
+		argv[2],
 		gateway
 	);
 	
 	BYTE* maskArray = calloc(4,sizeof(BYTE));
 	
 	ip4StrToAlloc(
-		argv[2],
+		argv[3],
 		maskArray
 	);
 	
-	int maxFrames = strToL(argv[3],10);
+	int maxFrames = strToL(argv[4],10);
+	
+	printf("chaff %u\n",maxFrames);
 	
 	BYTE* client = calloc(4,sizeof(BYTE));
 	
@@ -632,7 +632,7 @@ void main(int argc, str* argv)
 	
 	
 	condition0:{};
-
+	
 	xid = calloc(4,sizeof(BYTE));
 	
 	xid[0] = (BYTE)rand();
@@ -642,14 +642,7 @@ void main(int argc, str* argv)
 	
 	for (int i = 0; i < 6; i++)
 	{
-		macArray[i] = (BYTE)rand();
-		
-		/*
-		if (i < 4)
-		{
-			requested[i] = ((maskArray[i] ^ 255) & (BYTE)rand()) | (maskArray[i] & gateway[i]);
-		}
-		*/
+		macArray[i] = (BYTE)rand();	
 	}
 	
 	condition1:{};
@@ -671,6 +664,7 @@ void main(int argc, str* argv)
 	
 	condition1_1:{};
 	
+	/*
 	if(setsockopt(
 		dhcpSocket,
 		SOL_SOCKET,
@@ -683,6 +677,7 @@ void main(int argc, str* argv)
 		
 		goto endoffunction;
 	}
+	*/
 	
 	
 	struct sockaddr_in sourceAddr = { 0 };
@@ -721,16 +716,16 @@ void main(int argc, str* argv)
 	destinationAddr.sin_family = AF_INET;
 	destinationAddr.sin_port = htons(67);
 	
-	destinationAddr.sin_addr.S_un.S_addr = INADDR_BROADCAST;
+	destinationAddr.sin_addr.S_un.S_addr = 0;
 	
-	/*
 	for (int i = 0; i < 4; i++)
 	{
-		destinationAddr.sin_addr.S_un.S_addr += 255 * power(256, 3-i);
+		destinationAddr.sin_addr.S_un.S_addr += server[3 - i] * power(256, 3-i);
 	}
-	*/
 	
 	condition3:{};
+	
+	printf("frame %u\n",index);
 	
 	bravo = dhcpSend(
 		0,					// request
