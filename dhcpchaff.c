@@ -292,6 +292,7 @@ BOOL dhcpSend(BYTE mode, SOCKET dhcpSocket, struct sockaddr_in destinationAddr, 
 	int maxSize = 289;
 	
 	int modeSize = 0;
+	/*
 	if (mode == 0)
 	{
 		printf("sending request\n");
@@ -302,6 +303,7 @@ BOOL dhcpSend(BYTE mode, SOCKET dhcpSocket, struct sockaddr_in destinationAddr, 
 		printf("releasing original ipv4 address\n");
 		modeSize = 3;
 	}
+	*/
 	
 	maxSize += modeSize;
 	
@@ -707,7 +709,7 @@ void main(int argc, str* argv)
 	
 	BOOL bravo;
 	
-	bravo = sockErrSwitch(sockErr);
+	//bravo = sockErrSwitch(sockErr);
 	
 	if (bravo == FALSE)
 	{
@@ -741,7 +743,7 @@ void main(int argc, str* argv)
 		xid					// xid
 	);
 	
-	bravo = sockErrSwitch(sockErr);
+	//bravo = sockErrSwitch(sockErr);
 	
 	sockErr = -1;
 	
