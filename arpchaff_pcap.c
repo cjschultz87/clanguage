@@ -370,7 +370,7 @@ void main(int argc, str* argv)
 		{
 			BYTE mBravo = 0xFF ^ maskAlpha[i];
 			
-			srand(time(NULL));
+			srand(clock());
 			
 			BYTE bravo = 2 + ((BYTE)rand() % (mBravo - 2));
 			
@@ -474,7 +474,7 @@ void main(int argc, str* argv)
 	{
 		srand(time(NULL));
 		
-		Sleep(1000 % ((rand() % 1000)) + 500);
+		Sleep(255 % ((rand() % (255 - 50)) + 50));
 		
 		goto condition0;
 	}
