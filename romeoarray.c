@@ -6,8 +6,7 @@
 #include "strings.h"
 
 typedef char *str;
-typedef unsigned char BYTE;
-typedef unsigned int ULONG;
+typedef unsigned long ULONG;
 
 void main(int argc, str* argv)
 {
@@ -26,9 +25,9 @@ void main(int argc, str* argv)
 	
 	ULONG aL = maximum - minimum + 1;
 	
-	BYTE *alpha = calloc(aL, sizeof(BYTE));
+	ULONG *alpha = calloc(aL, sizeof(ULONG));
 	
-	BYTE *alpha_prime;
+	ULONG *alpha_prime;
 	
 	for (int i = minimum; i <= maximum; i++)
 	{
@@ -43,11 +42,11 @@ void main(int argc, str* argv)
 		
 		ULONG iota = (ULONG)rand() % aL_prime;
 		
-		printf("%u",alpha[iota]);
+		printf("%lu",alpha[iota]);
 		
 		aL_prime--;
 		
-		alpha_prime = calloc(aL_prime, sizeof(BYTE));
+		alpha_prime = calloc(aL_prime, sizeof(ULONG));
 		
 		ULONG iota_prime = 0;
 		
@@ -65,7 +64,7 @@ void main(int argc, str* argv)
 			skipfor0:{};
 		}
 		
-		alpha = calloc(aL_prime, sizeof(BYTE));
+		alpha = calloc(aL_prime, sizeof(ULONG));
 		
 		for (int i_0 = 0; i_0 < aL_prime; i_0++)
 		{
