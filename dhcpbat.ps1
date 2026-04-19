@@ -33,7 +33,7 @@ if ($mask.length -eq 0){echo "no subnet mask"; exit} else {$index = $mask.IndexO
 $maskArray = @()
 $index = 0
 $index_up = 0
-while ($index_up -ge 0){$index_up = $mask.substring($index,$mask.length - $index).IndexOf("."); if ($index_up -ge 0){$mask_sub = $mask.substring($index,$index_up)}else{$mask_sub = $mask.substring($index,$mask.length - $index)}; $maskArray += [math]::abs([int]$mask_sub - 255) -band $(get-random -minimum 2 -maximum 254); $index += $index_up + 1}
+while ($index_up -ge 0){$index_up = $mask.substring($index,$mask.length - $index).IndexOf("."); if ($index_up -ge 0){$mask_sub = $mask.substring($index,$index_up)}else{$mask_sub = $mask.substring($index,$mask.length - $index)}; $maskArray += $([int]$mask_sub -bxor 255) -band $(get-random -minimum 2 -maximum 254); $index += $index_up + 1}
 
 $gatewayIndex = 0
 
