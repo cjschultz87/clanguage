@@ -1,10 +1,10 @@
-$gateway = $(ipconfig | select-string `"Default Gateway`").tostring()
+$gateway = $(ipconfig | select-string `"Default Gateway`")[0].tostring()
 
 $index = $gateway.IndexOf(":") + 2
 
 if (($index -lt 0) -or ($index -ge $gateway.length)){echo "no gateway"; exit}
 
-$gateway = $gateway.substring($index,$gateway.length - ($index))[0]
+$gateway = $gateway.substring($index,$gateway.length - $index)
 
 echo "gateway = $gateway"
 
