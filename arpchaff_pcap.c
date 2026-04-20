@@ -340,9 +340,9 @@ void main(int argc, str* argv)
 	
 	for (int i = 0; i < 6; i++)
 	{
-		frame[32 + i] = (BYTE)255;
+		frame[32 + i] = 0;
 	}
-	// broadcast mac
+	// target mac
 	
 	BYTE* maskAlpha = calloc(4, sizeof(BYTE));
 	
