@@ -1,4 +1,11 @@
-$gateway = $(ipconfig | select-string `"Default Gateway`")[0].tostring()
+try
+{
+	$gateway = $(ipconfig | select-string "Default Gateway")[0].tostring()
+}
+catch
+{
+	$gateway = ""
+}
 
 $index = $gateway.IndexOf(":") + 2
 
@@ -8,14 +15,28 @@ $gateway = $gateway.substring($index,$gateway.length - $index)
 
 echo "gateway = $gateway"
 
-$server = $(ipconfig | select-string `"DHCP Server`")[0].tostring()
+try
+{
+	$server = $(ipconfig | select-string "DHCP Server")[0].tostring()
+}
+catch
+{
+	$server = ""
+}
 
 if ($server.length -eq 0){$server = $gateway}
 else {$index = $server.IndexOf(":") + 2; if (($index -lt 0) -or ($index -ge $server.ength)){echo "no server";exit}; $server = $server.substring($index,$server.length - $index)[0]}
 
 echo "server = $server"
 
-$client = $(ipconfig | select-string `"IPv4 Address`")[0].tostring()
+try
+{
+	$client = $(ipconfig | select-string "IPv4 Address")[0].tostring()
+}
+catch
+{
+	$client = ""
+}
 
 if ($client.length -eq 0){echo "no client address"; exit}
 
@@ -27,7 +48,14 @@ $client = $client.substring($index,$client.length - $index)
 
 echo "client = $client"
 
-$mask = $(ipconfig | select-string `"Subnet Mask`")[0].tostring()
+try
+{
+	$mask = $(ipconfig | select-string "Subnet Mask")[0].tostring()
+}
+catch
+{
+	$mask = ""
+}
 
 if ($mask.length -eq 0){echo "no subnet mask"; exit} else {$index = $mask.IndexOf( 	":") + 2; $mask = $mask.substring($index,$mask.length - $index)}
 
