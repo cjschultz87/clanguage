@@ -1,0 +1,153 @@
+#include "stdio.h"
+#include "stdlib.h"
+
+#include "string.h"
+
+#include "windows.h"
+
+#include "process.h"
+
+#pragma comment(lib, "C:\\Program Files (x86)\\Intel\\oneAPI\\2025.3\\lib\\libirc.lib")
+
+
+/////////////////////////////////////////////
+
+unsigned int power(unsigned int N, unsigned int E)
+{
+	unsigned int rVal = 1;
+	
+	for (int i = 0; i < E; i++)
+	{
+		rVal *= N;
+	}
+	
+	return rVal;
+}
+
+
+/////////////////////////////////////////////
+
+
+unsigned int charAdd(char* C)
+{
+	unsigned int N = 0;
+	
+	int sN = 0;
+	
+	while (*(C + sN) != NULL)
+	{
+		sN++;
+	}
+	
+	sN--;
+	
+	while (sN >= 0)
+	{
+		unsigned char digit = *C;
+		
+		if (digit >= '0' && digit <= '9')
+		{
+			N += (digit - '0') * power(10, sN);
+		}
+		
+		C++;
+		sN--;
+	}
+	
+	return N;
+}
+
+
+/////////////////////////////////////////////
+
+
+void multiLoop(void* arg)
+{
+	typedef struct multiPar{
+		unsigned int index;
+		unsigned int cN;
+		unsigned int N;
+	}multiPar;
+	
+	struct multiPar *voidPar;
+
+	voidPar = arg;
+	
+	while (voidPar->index <= voidPar->N / voidPar->cN)
+	{
+		if (voidPar->N % voidPar->index == 0)
+		{
+			unsigned int factor = voidPar->N / voidPar->index;
+			
+			printf("%u, %u\n", voidPar->index, factor);
+		}
+		
+		voidPar->index += voidPar->cN;
+	}
+		
+	_endthread();
+}
+
+
+/////////////////////////////////////////////
+
+
+int main(int argc, char** argv)
+{
+	if (argc != 3)
+	{
+		return -1;
+	}
+	
+	unsigned int N = charAdd(argv[1]);
+	
+	unsigned int coreN = charAdd(argv[2]);
+	
+	if (N == 0 || coreN == 0)
+	{
+		return -1;
+	}
+	
+	if (N < 4)
+	{
+		printf("%u is prime\n", N);
+		
+		return 0;
+	}
+	
+	unsigned int divisor = 2;
+	
+	while ((N % divisor) != 0)
+	{
+		divisor++;
+	}
+	
+	if (coreN > N / divisor)
+	{
+		coreN = N / divisor;
+	}
+	
+	typedef struct multiVar{
+		unsigned int index;
+		unsigned int cN;
+		unsigned int N;
+	}multiVar;
+	
+	HANDLE* hotel = calloc(coreN, sizeof(HANDLE));
+	
+	for (int i = divisor; i < coreN + divisor; i++)
+	{
+		struct multiVar voidArg = {i,coreN,N};
+		
+		hotel[i - divisor] = (HANDLE)_beginthread(multiLoop,1000,(void*)&voidArg);
+		
+		WaitForSingleObject(hotel[i - divisor],1);
+	}
+	
+	for (int i = 0; i < coreN; i++)
+	{
+		WaitForSingleObject(hotel[i],INFINITE);
+	}
+	
+	return 0;
+}
