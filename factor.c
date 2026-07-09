@@ -9,6 +9,12 @@
 
 #pragma comment(lib, "C:\\Program Files (x86)\\Intel\\oneAPI\\2025.3\\lib\\libirc.lib")
 
+typedef unsigned char bool;
+
+#define true	1
+#define false	0
+
+bool isPrime = true;
 
 /////////////////////////////////////////////
 
@@ -64,6 +70,7 @@ unsigned int charAdd(char* C)
 void multiLoop(void* arg)
 {
 	typedef struct multiPar{
+		bool isPrime;
 		unsigned int index;
 		unsigned int cN;
 		unsigned int N;
@@ -77,6 +84,11 @@ void multiLoop(void* arg)
 	{
 		if (voidPar->N % voidPar->index == 0)
 		{
+			if (voidPar->isPrime == true)
+			{
+				voidPar->isPrime = false;
+			}
+			
 			unsigned int factor = voidPar->N / voidPar->index;
 			
 			printf("%u, %u\n", voidPar->index, factor);
@@ -128,6 +140,7 @@ int main(int argc, char** argv)
 	}
 	
 	typedef struct multiVar{
+		bool isPrime;
 		unsigned int index;
 		unsigned int cN;
 		unsigned int N;
@@ -137,7 +150,7 @@ int main(int argc, char** argv)
 	
 	for (int i = divisor; i < coreN + divisor; i++)
 	{
-		struct multiVar voidArg = {i,coreN,N};
+		struct multiVar voidArg = {isPrime,i,coreN,N};
 		
 		hotel[i - divisor] = (HANDLE)_beginthread(multiLoop,1000,(void*)&voidArg);
 		
