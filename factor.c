@@ -79,7 +79,9 @@ void multiLoop(void* arg)
 
 	voidPar = arg;
 	
-	while (voidPar->index <= voidPar->N / voidPar->cN)
+	unsigned int minI = voidPar->index;
+	
+	while ((float)voidPar->index <= (float)voidPar->N / (float)minI)
 	{
 		if (voidPar->N % voidPar->index == 0)
 		{
