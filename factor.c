@@ -70,7 +70,6 @@ unsigned int charAdd(char* C)
 void multiLoop(void* arg)
 {
 	typedef struct multiPar{
-		bool isPrime;
 		unsigned int index;
 		unsigned int cN;
 		unsigned int N;
@@ -84,9 +83,9 @@ void multiLoop(void* arg)
 	{
 		if (voidPar->N % voidPar->index == 0)
 		{
-			if (voidPar->isPrime == true)
+			if (isPrime == true)
 			{
-				voidPar->isPrime = false;
+				isPrime = false;
 			}
 			
 			unsigned int factor = voidPar->N / voidPar->index;
@@ -140,7 +139,6 @@ int main(int argc, char** argv)
 	}
 	
 	typedef struct multiVar{
-		bool isPrime;
 		unsigned int index;
 		unsigned int cN;
 		unsigned int N;
@@ -150,7 +148,7 @@ int main(int argc, char** argv)
 	
 	for (int i = divisor; i < coreN + divisor; i++)
 	{
-		struct multiVar voidArg = {isPrime,i,coreN,N};
+		struct multiVar voidArg = {i,coreN,N};
 		
 		hotel[i - divisor] = (HANDLE)_beginthread(multiLoop,1000,(void*)&voidArg);
 		
@@ -160,6 +158,11 @@ int main(int argc, char** argv)
 	for (int i = 0; i < coreN; i++)
 	{
 		WaitForSingleObject(hotel[i],INFINITE);
+	}
+
+	if (isPrime == true)
+	{
+		printf("%u is prime\n", N);
 	}
 	
 	return 0;
