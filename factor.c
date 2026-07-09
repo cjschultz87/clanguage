@@ -91,7 +91,7 @@ void multiLoop(void* arg)
 			
 			unsigned int factor = voidPar->N / voidPar->index;
 			
-			printf("%u, %u, %u\n", minI, voidPar->index, factor);
+			printf("%u, %u\n", voidPar->index, factor);
 		}
 		
 		voidPar->index += voidPar->cN;
