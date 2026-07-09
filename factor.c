@@ -66,7 +66,6 @@ unsigned int charAdd(char* C)
 
 /////////////////////////////////////////////
 
-
 void multiLoop(void* arg)
 {
 	typedef struct multiPar{
@@ -81,7 +80,7 @@ void multiLoop(void* arg)
 	
 	unsigned int minI = voidPar->index;
 	
-	while ((float)voidPar->index <= (float)voidPar->N / (float)minI)
+	while ((float)voidPar->index < (float)voidPar->N / (float)minI)
 	{
 		if (voidPar->N % voidPar->index == 0)
 		{
@@ -92,7 +91,7 @@ void multiLoop(void* arg)
 			
 			unsigned int factor = voidPar->N / voidPar->index;
 			
-			printf("%u, %u\n", voidPar->index, factor);
+			printf("%u, %u, %u\n", minI, voidPar->index, factor);
 		}
 		
 		voidPar->index += voidPar->cN;
@@ -128,31 +127,29 @@ int main(int argc, char** argv)
 		return 0;
 	}
 	
-	unsigned int divisor = 2;
-	
-	while ((N % divisor) != 0)
-	{
-		divisor++;
-	}
-	
-	if (coreN > N / divisor)
-	{
-		coreN = N / divisor;
-	}
-	
 	typedef struct multiVar{
 		unsigned int index;
 		unsigned int cN;
 		unsigned int N;
 	}multiVar;
 	
+	unsigned int divisor = 2;
+	
 	HANDLE* hotel = calloc(coreN, sizeof(HANDLE));
 	
-	for (int i = divisor; i < coreN + divisor; i++)
-	{
-		struct multiVar voidArg = {i,coreN,N};
+	unsigned int multiVarL = sizeof(multiVar);
+	
+	struct multiVar *voidArg = calloc(coreN, multiVarL);
+	
+	for (unsigned int i = divisor; i < coreN + divisor; i++)
+	{	
+		voidArg->index = i;
+		voidArg->cN = coreN;
+		voidArg->N = N;
 		
-		hotel[i - divisor] = (HANDLE)_beginthread(multiLoop,1000,(void*)&voidArg);
+		hotel[i - divisor] = (HANDLE)_beginthread(multiLoop,1000,(void*)voidArg);
+		
+		voidArg++;
 		
 		WaitForSingleObject(hotel[i - divisor],1);
 	}
@@ -161,7 +158,7 @@ int main(int argc, char** argv)
 	{
 		WaitForSingleObject(hotel[i],INFINITE);
 	}
-
+	
 	if (isPrime == true)
 	{
 		printf("%u is prime\n", N);
