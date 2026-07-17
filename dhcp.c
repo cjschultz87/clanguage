@@ -429,15 +429,6 @@ BOOL dhcpSend(BYTE mode, SOCKET dhcpSocket, struct sockaddr_in destinationAddr, 
 		return FALSE;
 	}
 	
-	int sockErr = closesocket(dhcpSocket);
-	
-	BOOL dhcpSocketErr = sockErrSwitch(sockErr);
-	
-	if (dhcpSocketErr == FALSE)
-	{
-		return FALSE;
-	}
-	
 	return TRUE;
 }
 
@@ -652,6 +643,93 @@ void main(int argc, str* argv)
 		}
 	}
 	
+	/////////////////////////////////////////////
+	// variables declared here for faster binding
+	/////////////////////////////////////////////
+	
+	int difference = 28;
+	int dRDL = 411;
+	
+	BYTE* payload_rec;
+	
+	int sockRecv;
+	
+	int recErr;
+	
+	time_t dhcpLeaseObtained = 0;
+	
+	startDHCPRec:{};
+	
+	payload_rec = calloc(dRDL,sizeof(BYTE));
+	
+	
+	BYTE* newAddress = calloc(4,sizeof(BYTE));
+	
+	
+	struct sockaddr_in sourceAddrRec = { 0 };
+	
+	sourceAddrRec.sin_family = AF_INET;
+	sourceAddrRec.sin_port = htons(68);
+	
+	//sourceAddrRec.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+	
+	
+	u_long sourceAddrChange = 0;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		sourceAddrChange += requested[3-i] * power(256, 3-i);
+	}
+	
+	sourceAddrRec.sin_addr.S_un.S_addr = sourceAddrChange;
+	
+	u_long maskAddress = 0;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		maskAddress += maskArray[3-i] * power(256, 3-i);
+	}
+	
+	PULONG ipChangeContext = calloc(1,sizeof(ULONG));
+	PULONG ipInstance = calloc(1,sizeof(ULONG));
+	
+	DWORD adapterIndex = strToL(adapterIndexS,10);
+	
+	HANDLE waitAddIpAddr = NULL;
+	
+	OVERLAPPED waitOverlap = { 0 };
+	
+	AddIPAddress(
+		sourceAddrChange,			// new address
+		maskAddress,				// ip mask
+		adapterIndex,				// ifindex
+		ipChangeContext,			// NTEcontext
+		ipInstance					// NTEinstance
+	);
+	
+	NotifyAddrChange(
+		&waitAddIpAddr,
+		&waitOverlap
+	);
+	
+	WaitForSingleObject(
+		waitAddIpAddr,
+		INFINITE
+	);
+	
+	
+	struct sockaddr_in sourceAddr = { 0 };
+	
+	sourceAddr.sin_family = AF_INET;
+	sourceAddr.sin_port = htons(68);
+	
+	sourceAddr.sin_addr.S_un.S_addr = 0;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		sourceAddr.sin_addr.S_un.S_addr += client[3-i] * power(256, 3-i);
+	}
+	
 	
 	////////////////////
 	// dhcp request send
@@ -675,7 +753,7 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
-	
+	/*
 	struct sockaddr_in sourceAddr = { 0 };
 	
 	sourceAddr.sin_family = AF_INET;
@@ -687,6 +765,7 @@ void main(int argc, str* argv)
 	{
 		sourceAddr.sin_addr.S_un.S_addr += client[3-i] * power(256, 3-i);
 	}
+	*/
 	
 	sockErr = bind(
 		dhcpSocket,								// s (socket)
@@ -740,13 +819,23 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
+	closesocket(dhcpSocket);
 	
-	
-	
+	/*
 	///////////////////////////////
 	// set up the new ipv4 address
 	///////////////////////////////
 	
+	u_long clientAddrDelete = 0;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		clientAddrDelete += client[3-i] * power(256, 3-i);
+	}
+	
+	DWORD deleteAddrN = DeleteIPAddress(
+			clientAddrDelete	// original client address
+	);
 	
 	u_long sourceAddrChange = 0;
 	
@@ -775,12 +864,14 @@ void main(int argc, str* argv)
 		ipInstance					// NTEinstance
 	);
 	
+	*/
+	
 	
 	/////////////////////
 	// dhcp offer receive
 	/////////////////////
 	
-	BYTE* newAddress = calloc(4,sizeof(BYTE));
+	//BYTE* newAddress = calloc(4,sizeof(BYTE));
 	
 	dhcpSocket = socket(
 		AF_INET,			// af
@@ -797,41 +888,26 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
+	
 	/*
-	int sMode = 1;			// nonblocking socket
-	
-	sockErr = ioctlsocket(
-		dhcpSocket,			// socket
-		FIONBIO,			// arg
-		&sMode				// nonblocking mode int
-	);
-	*/
-	
-	
 	sourceAddr.sin_family = AF_INET;
 	sourceAddr.sin_port = htons(68);
 	
-	/*
-	sourceAddr.sin_addr.S_un.S_addr = 0;
+	//sourceAddr.sin_addr.S_un.S_addr = sourceAddrChange;
 	
-	for (int i = 0; i < 4; i++)
-	{
-		sourceAddr.sin_addr.S_un.S_addr += requested[3-i] * power(256, 3-i);
-	}
+	sourceAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 	*/
-	
-	sourceAddr.sin_addr.S_un.S_addr = sourceAddrChange;
 	
 	sockErr = bind(
 		dhcpSocket,							// s (socket)
-		(const struct sockaddr*)&sourceAddr,		// sockaddr *name (source info)
+		(const struct sockaddr*)&sourceAddrRec,		// sockaddr *name (source info)
 		sizeof(sourceAddr)					// namelen
 	);
 	
 	
 	bravo = sockErrSwitch(sockErr);
 	
-	sockErr = -1;
+	//sockErr = -1;
 	
 	if (bravo == FALSE)
 	{
@@ -840,6 +916,7 @@ void main(int argc, str* argv)
 		goto endoffunction;
 	}
 	
+	/*
 	int difference = 28;
 	int dRDL = 411;
 	
@@ -854,6 +931,8 @@ void main(int argc, str* argv)
 	startDHCPRec:{};
 	
 	payload_rec = calloc(dRDL,sizeof(BYTE));
+	
+	*/
 	
 	sockRecv = recv(
 		dhcpSocket,				// s (socket)
@@ -871,6 +950,8 @@ void main(int argc, str* argv)
 	if (recErr != 0)
 	{
 		printf("socket error: %d, recv error.\n", recErr);
+		
+		goto endoffunction;
 	}
 	
 	xidRec = calloc(4,sizeof(BYTE));
@@ -913,13 +994,28 @@ void main(int argc, str* argv)
 		newAddress				// alphaOut
 	);
 
+
+
+
+	u_long clientAddrDelete = 0;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		clientAddrDelete += client[3-i] * power(256, 3-i);
+	}
+	
+	DWORD deleteAddrN = DeleteIPAddress(
+			clientAddrDelete	// original client address
+	);	
 	
 	
 	
 	
 	// in case of a nak response
 	
-	u_long clientAddrDelete = 0;
+	nakjump:{};
+	
+	clientAddrDelete = 0;
 	
 	if (
 		newAddress[0] == 0 
@@ -935,7 +1031,7 @@ void main(int argc, str* argv)
 			clientAddrDelete += requested[3-i] * power(256, 3-i);
 		}
 	
-		DWORD deleteAddrN = DeleteIPAddress(
+		deleteAddrN = DeleteIPAddress(
 			clientAddrDelete	// original client address
 		);
 	
@@ -944,6 +1040,7 @@ void main(int argc, str* argv)
 			printf("%u couldn't delete new address.\n", deleteAddrN);
 		}
 		
+		/*
 		sourceAddrChange = 0;
 		
 		for (int i = 0; i < 4; i++)
@@ -959,6 +1056,7 @@ void main(int argc, str* argv)
 			ipChangeContext,			// NTEcontext
 			ipInstance					// NTEinstance
 		);
+		*/
 	}
 	else
 	{	
@@ -1088,4 +1186,3 @@ void main(int argc, str* argv)
 	}
 	
 }
-
