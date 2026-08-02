@@ -1222,7 +1222,7 @@ void main(int argc, str* argv)
 			clientAddrDelete	// original client address
 		);
 	
-		if (deleteAddrN != NO_ERROR && deleteAddrN != 1168)
+		if (deleteAddrN != 1168 && deleteAddrN != NO_ERROR)
 		{
 			printf("%u couldn't delete original address.\n", deleteAddrN);
 		}
