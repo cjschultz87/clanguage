@@ -754,6 +754,8 @@ void main(int argc, str* argv)
 				{
 					if (pIPAddrTable->table[i].dwAddr == sourceAddrChange)
 					{
+						free(pIPAddrTable);
+						
 						goto ipTableConfirmation;
 					}
 				}
@@ -763,8 +765,6 @@ void main(int argc, str* argv)
 	}
 	
 	ipTableConfirmation:{};
-	
-	free(pIPAddrTable);
 	
 	CloseHandle(waitOverlap.hEvent);
 	
