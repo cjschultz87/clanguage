@@ -648,7 +648,7 @@ void main(int argc, str* argv)
 	/////////////////////////////////////////////
 	
 	int difference = 28;
-	int dRDL = 411;
+	int dRDL = 1500;
 	
 	BYTE* payload_rec;
 	
