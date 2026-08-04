@@ -741,7 +741,7 @@ void main(int argc, str* argv)
 			pIPAddrTable = (MIB_IPADDRTABLE *)malloc(dwSize);
 			
 			/*
-			the ipaddrtable here is a struct that will be initialized at runtime and is therefore implicity; google ai suggests checking the ipaddrtable to ensure that the address is added.
+			the ipaddrtable here is a struct that will be initialized at runtime and is therefore implicit; google ai suggests checking the ipaddrtable to ensure that the address is added.
 			*/
 			
 			if (GetIpAddrTable(
