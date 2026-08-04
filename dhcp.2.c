@@ -671,7 +671,7 @@ void main(int argc, str* argv)
 	sourceAddrRec.sin_family = AF_INET;
 	sourceAddrRec.sin_port = htons(68);
 	
-	//sourceAddrRec.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+	sourceAddrRec.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 	
 	
 	u_long sourceAddrChange = 0;
@@ -681,7 +681,7 @@ void main(int argc, str* argv)
 		sourceAddrChange += requested[3-i] * power(256, 3-i);
 	}
 	
-	sourceAddrRec.sin_addr.S_un.S_addr = sourceAddrChange;
+	//sourceAddrRec.sin_addr.S_un.S_addr = sourceAddrChange;
 	
 	u_long maskAddress = 0;
 	
